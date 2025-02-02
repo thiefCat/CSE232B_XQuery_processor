@@ -10,6 +10,7 @@ public class XPathVisitor extends XPathBaseVisitor<List<Node>>{
      */
     @Override
     public List<Node> visitDoc(XPathParser.DocContext ctx){
+
         return null;
     }
 
