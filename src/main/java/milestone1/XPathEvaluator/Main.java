@@ -29,21 +29,21 @@ public class Main {
      * Call visit functions on the tree to evaluate
      */
     public static List<Node> evaluate(String xPathQuery) {
-
+        return null;
     }
 
     /* TODO:
      * Used to generate the final result in xml
      */
     public static Document transform(List<Node> result) throws Exception{
-
+        return null;
     }
 
     /* TODO:
      * Save the Document result to a xml file
      */
     public static void save_xml(Document result){
-
+        return;
     }
 
 }
