@@ -10,7 +10,5 @@ public class simpleTest {
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(fname));
         XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
         System.out.println(fname);
-//        ParseTree tree = parser.eval();
-//        System.out.println(compute(tree));
     }
 }

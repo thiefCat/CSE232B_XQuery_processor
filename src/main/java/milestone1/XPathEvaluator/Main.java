@@ -1,13 +1,22 @@
 package milestone1.XPathEvaluator;
 
 import java.util.List;
+
+import milestone1.autogen.ExpressionParser.XPathLexer;
+import milestone1.autogen.ExpressionParser.XPathParser;
+import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        String fname = args[0];
+        XPathLexer lexer = new XPathLexer(new ANTLRFileStream(fname));
+        XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
+        System.out.println("Test file path: " + fname);
         /* TODO:
          * Call evaluate
          * Call transform
