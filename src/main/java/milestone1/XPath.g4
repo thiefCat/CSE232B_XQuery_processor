@@ -33,9 +33,16 @@ f   : relativePath         # rpFilter
     | 'not' f   # notFilter
     ;
 
-doc : 'doc("' FILENAME '")';
+doc : 'doc(' FILENAME ')';
 tagName : ID;
 attrName : ID;
+
+EQ  : '=' | 'eq';
+IS  : '==' | 'is';
+ID  : [a-zA-Z0-9_-]+ ;
+
+FILENAME    : '"' [a-zA-Z0-9._]+[.][a-zA-Z0-9._]+ '"';
+WHITESPACE  : [ \t\r\n]+ -> skip;
 
 STRING
     : '"' (ESCAPE | ~["\\])* '"'
@@ -44,10 +51,3 @@ STRING
 ESCAPE
     : '\\' (['"\\])
     ;
-
-EQ  : '=' | 'eq';
-IS  : '==' | 'is';
-ID  : [a-zA-Z0-9_-]+ ;
-
-FILENAME    : [a-zA-Z0-9._]+;
-WHITESPACE  : [ \t\r\n]+ -> skip;
