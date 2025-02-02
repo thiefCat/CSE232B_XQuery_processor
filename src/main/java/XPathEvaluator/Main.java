@@ -1,9 +1,18 @@
-package org.example;
+package XPathEvaluator;
+
+import java.util.List;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
+        /* TODO:
+         * Call evaluate
+         * Call transform
+         * Call save_xml
+         */
         //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
         // to see how IntelliJ IDEA suggests fixing it.
         System.out.printf("Hello and welcome!");
@@ -14,4 +23,27 @@ public class Main {
             System.out.println("i = " + i);
         }
     }
+
+    /* TODO:
+     * Construct AST tree,
+     * Call visit functions on the tree to evaluate
+     */
+    public static List<Node> evaluate(String xPathQuery) {
+
+    }
+
+    /* TODO:
+     * Used to generate the final result in xml
+     */
+    public static Document transform(List<Node> result) throws Exception{
+
+    }
+
+    /* TODO:
+     * Save the Document result to a xml file
+     */
+    public static void save_xml(Document result){
+
+    }
+
 }
