@@ -1,4 +1,4 @@
-package XPathEvaluator;
+package milestone1.XPathEvaluator;
 
 import java.util.List;
 import org.w3c.dom.Document;
