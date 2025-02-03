@@ -44,21 +44,21 @@ public class XPathProcessor {
     public static List<Node> evaluate(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
 
-        if (ast instanceof XPathParser.AbsolutePathContext) {
-            return evaluate(ast.getChild(1), currentNode);
-        }
-
-        if (ast instanceof XPathParser.TagNameContext) {
-            String tagName = ast.getText();
-            NodeList children = currentNode.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                Node child = children.item(i);
-                if (child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals(tagName)) {
-                    result.add(child);
-                }
-            }
-            return result;
-        }
+//        if (ast instanceof XPathParser.AbsolutePathContext) {
+//            return evaluate(ast.getChild(1), currentNode);
+//        }
+//
+//        if (ast instanceof XPathParser.TagNameContext) {
+//            String tagName = ast.getText();
+//            NodeList children = currentNode.getChildNodes();
+//            for (int i = 0; i < children.getLength(); i++) {
+//                Node child = children.item(i);
+//                if (child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals(tagName)) {
+//                    result.add(child);
+//                }
+//            }
+//            return result;
+//        }
 
         return null;
     }

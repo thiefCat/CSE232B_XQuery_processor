@@ -38,41 +38,9 @@ public class Main {
         Document domTree = XMLParser.loadXML(xmlFileName);
 
 
-//        Document resultTree = XPathProcessor.compute(ast, domTree);
-//        List<Node> resultNodes = XPathProcessor.evaluate(ast, domTree.getDocumentElement());
-//        System.out.println();
+        Document resultTree = XPathProcessor.compute(ast, domTree);
+        // save to "src/output.xml"
+//         XMLParser.saveXML(resultTree, "src/output.xml");
     }
 
-//    /* TODO:
-//     * Construct AST tree,
-//     * Call visit functions on the tree to evaluate
-//     */
-//    public static List<Node> evaluate(String xPathQuery) {
-//
-//        return null;
-//    }
-
-    /* Used to generate the final result in xml
-     */
-//    public static Document transform(List<Node> result) throws ParserConfigurationException {
-//        var dbFactory = DocumentBuilderFactory.newInstance();
-//        var dBuilder = dbFactory.newDocumentBuilder();
-//        var doc = dBuilder.newDocument();
-//
-//        var parentElement = doc.createElement("result");
-//        doc.appendChild(parentElement);
-//
-//        for (Node node : result) {
-//            try {
-//                Node newNode;
-//                newNode = doc.importNode(node, true);
-//                parentElement.appendChild(newNode);
-//            } catch (DOMException e) {
-//                if (e.code != DOMException.NOT_SUPPORTED_ERR) {
-//                    throw e;
-//                }
-//            }
-//        }
-//        return doc;
-//    }
 }
