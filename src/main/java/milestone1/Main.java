@@ -35,10 +35,10 @@ public class Main {
         ParseTree ast = parser.absolutePath();
 
         System.out.println("Parsed XPath: " + ast.toStringTree(parser));
-        Document domTree = XMLParser.loadXML(xmlFileName);
+        Document document = XMLParser.loadXML(xmlFileName);
 
 
-        Document resultTree = XPathProcessor.compute(ast, domTree);
+        Document resultTree = XPathProcessor.compute(ast, document);
         // save to "src/output.xml"
 //         XMLParser.saveXML(resultTree, "src/output.xml");
     }

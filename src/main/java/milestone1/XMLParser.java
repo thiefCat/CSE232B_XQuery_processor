@@ -23,7 +23,9 @@ public class XMLParser {
         InputStream inputStream = new FileInputStream(file);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(inputStream);
+        Document result =  builder.parse(inputStream);
+        result.getDocumentElement().normalize();
+        return result;
     }
 
     public static void saveXML(Document doc, String outputPath) throws Exception {

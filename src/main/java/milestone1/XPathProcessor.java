@@ -11,38 +11,41 @@ import java.util.List;
 
 /*
     Processes XPath AST on the DOM Tree
- */
+*/
+
 public class XPathProcessor {
     public static Document compute(ParseTree ast, Document domTree) throws Exception {
         List<Node> resultNodes = evaluate(ast, domTree.getDocumentElement());
-
-        // Create a new result DOM tree
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("result");
-        doc.appendChild(root);
-
-        // Append matching nodes to the new document
-        for (Node node : resultNodes) {
-            Node importedNode = doc.importNode(node, true);
-            root.appendChild(importedNode);
-            try {
-                Node newNode;
-                newNode = doc.importNode(node, true);
-                root.appendChild(newNode);
-            } catch (DOMException e) {
-                if (e.code != DOMException.NOT_SUPPORTED_ERR) {
-                    throw e;
-                }
-            }
-        }
-        return doc;
+        return null;
+//        // Create a new result DOM tree
+//        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//        DocumentBuilder builder = factory.newDocumentBuilder();
+//        Document doc = builder.newDocument();
+//        Element root = doc.createElement("result");
+//        doc.appendChild(root);
+//
+//        // Append matching nodes to the new document
+//        for (Node node : resultNodes) {
+//            Node importedNode = doc.importNode(node, true);
+//            root.appendChild(importedNode);
+//            try {
+//                Node newNode;
+//                newNode = doc.importNode(node, true);
+//                root.appendChild(newNode);
+//            } catch (DOMException e) {
+//                if (e.code != DOMException.NOT_SUPPORTED_ERR) {
+//                    throw e;
+//                }
+//            }
+//        }
+//        return doc;
     }
 
     // To DO
     public static List<Node> evaluate(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
+        System.out.println("Node Name: " + currentNode.getNodeName());
+        System.out.println("Node Type: " + currentNode.getNodeType());
 
 //        if (ast instanceof XPathParser.AbsolutePathContext) {
 //            return evaluate(ast.getChild(1), currentNode);
