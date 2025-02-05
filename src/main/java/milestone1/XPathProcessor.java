@@ -109,6 +109,16 @@ public class XPathProcessor {
         if (filterNode instanceof XPathParser.RpFilterContext) {
             return handleRpFilter(filterNode, currentNode);
         }
+        //      | relativePath  EQ relativePath   # eqFilter
+        // Can't think of a good example, since
+        if (filterNode instanceof XPathParser.EqFilterContext) {
+            return handleEqFilter(filterNode, currentNode);
+        }
+        //      | relativePath  IS relativePath   # isFilter
+        // doc("test.xml")/breakfast_menu/food[description is description]
+        if (filterNode instanceof XPathParser.IsFilterContext) {
+            return handleIsFilter(filterNode, currentNode);
+        }
 
         //  | relativePath  '=' STRING # stringFilter
         if (filterNode instanceof XPathParser.StringFilterContext) {
@@ -185,6 +195,33 @@ public class XPathProcessor {
         List<Node> rpResults = evaluate(ast.getChild(0), currentNode);
         return rpResults != null && !rpResults.isEmpty();
     }
+
+    private static boolean handleEqFilter(ParseTree ast, Node currentNode) {
+        List<Node> rpResults0 = evaluate(ast.getChild(0), currentNode);
+        List<Node> rpResults1 = evaluate(ast.getChild(2), currentNode);
+        for (Node node1 : rpResults0) {
+            for (Node node2 : rpResults1) {
+                if (node1.isEqualNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean handleIsFilter(ParseTree ast, Node currentNode) {
+        List<Node> rpResults0 = evaluate(ast.getChild(0), currentNode);
+        List<Node> rpResults1 = evaluate(ast.getChild(2), currentNode);
+        for (Node node1 : rpResults0) {
+            for (Node node2 : rpResults1) {
+                if (node1.isSameNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // [[rp = StringConstant]]F (n)
     // = ∃x ∈ [[rp]]R(n) x eq StringConstant (17)
     private static boolean handleStringFilter(ParseTree ast, Node currentNode) {
