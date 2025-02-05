@@ -110,6 +110,11 @@ public class XPathProcessor {
         if (filterNode instanceof XPathParser.StringFilterContext) {
             return handleStringFilter(filterNode, currentNode);
         }
+
+        //     | 'not' f   # notFilter
+        if (filterNode instanceof XPathParser.NotFilterContext) {
+            return handleNotFilter(filterNode, currentNode);
+        }
         return false;
     }
 
@@ -181,6 +186,12 @@ public class XPathProcessor {
         }
         // No match, return false
         return false;
+    }
+
+    private static boolean handleNotFilter(ParseTree ast, Node currentNode) {
+        // [[not f]]F (n)
+        //  = ¬[[f]]F (n) (21)
+        return !evaluateFilter(ast.getChild(1), currentNode);
     }
 
 
