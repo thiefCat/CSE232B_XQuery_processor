@@ -7,14 +7,20 @@ import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.*;
+import milestone1.XMLParser.*;
 
 /*
     Processes XPath AST on the DOM Tree
 */
 
 public class XPathProcessor {
-    public static Document compute(ParseTree ast, Document domTree) throws Exception {
-        List<Node> resultNodes = evaluate(ast, domTree.getDocumentElement());
+
+    private static final String baseAddr = "src/main/resources/";
+    public static Document compute(ParseTree ast) throws Exception {
+        String xmlFileAddr = baseAddr + ast.getChild(0).getChild(1).getText().replace("\"", "");
+        Document document = XMLParser.loadXML(xmlFileAddr);
+
+        List<Node> resultNodes = evaluate(ast, document.getDocumentElement());
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -49,7 +55,11 @@ public class XPathProcessor {
 //        }
 
         if (ast instanceof XPathParser.AllChildrenRPContext) {
-            return handleAllChildrenRPContext(ast, currentNode);
+            return handleAllChildrenRP(ast, currentNode);
+        }
+
+        if (ast instanceof XPathParser.SelfRPContext) {
+            return handleSelfRP(ast, currentNode);
         }
 
 
@@ -61,7 +71,9 @@ public class XPathProcessor {
         return null;
     }
 
-    private static List<Node> handleAllChildrenRPContext(ParseTree ast, Node currentNode) {
+
+    // *
+    private static List<Node> handleAllChildrenRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
         NodeList children = currentNode.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
@@ -73,12 +85,20 @@ public class XPathProcessor {
         return result;
     }
 
-
-    private static List<Node> handleDescentAP(ParseTree ast, Node currentNode) {
+    // .
+    private static List<Node> handleSelfRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
-        return null;
+        result.add(currentNode);
+        return result;
     }
 
+//    private static List<Node> handleDescentAP(ParseTree ast, Node currentNode) {
+//        List<Node> result = new ArrayList<>();
+//
+//        return null;
+//    }
+
+    // rp1/rp2
     private static List<Node> handleChildrenRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
         List<Node> rp1Results = evaluate(ast.getChild(0), currentNode);
@@ -88,6 +108,7 @@ public class XPathProcessor {
         return result;
     }
 
+    // tagName
     private static List<Node> handleTagRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
         String tagName = ast.getText();
