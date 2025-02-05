@@ -44,12 +44,38 @@ public class XPathProcessor {
             return uniqueResults;
         }
 
+//        if (ast instanceof XPathParser.DescendantAPContext) {
+//            return
+//        }
+
+        if (ast instanceof XPathParser.AllChildrenRPContext) {
+            return handleAllChildrenRPContext(ast, currentNode);
+        }
+
+
         // Terminal Node
         if (ast instanceof XPathParser.TagRPContext) {
             return handleTagRP(ast, currentNode);
         }
 
+        return null;
+    }
 
+    private static List<Node> handleAllChildrenRPContext(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        NodeList children = currentNode.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                result.add(child);
+            }
+        }
+        return result;
+    }
+
+
+    private static List<Node> handleDescentAP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
         return null;
     }
 
