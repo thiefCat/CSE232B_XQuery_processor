@@ -125,6 +125,11 @@ public class XPathProcessor {
         if(filterNode instanceof  XPathParser.AndFilterContext) {
             return handleAndFilter(filterNode, currentNode);
         }
+        //     | f 'or' f  # orFilter
+        // e.g. doc("test.xml")/breakfast_menu/food[((not description)) or name="Belgian Waffles"]
+        if(filterNode instanceof  XPathParser.OrFilterContext) {
+            return handleOrFilter(filterNode, currentNode);
+        }
 
         //     | 'not' f   # notFilter
         if (filterNode instanceof XPathParser.NotFilterContext) {
@@ -213,6 +218,11 @@ public class XPathProcessor {
     private static boolean handleAndFilter(ParseTree ast, Node currentNode) {
         // [[f1 and f2]]F (n) = [[f1]]F (n) ∧ [[f2]]F (n) (19)
         return evaluateFilter(ast.getChild(0), currentNode) && evaluateFilter(ast.getChild(2), currentNode);
+    }
+
+    private static boolean handleOrFilter(ParseTree ast, Node currentNode) {
+        // [[f1 and f2]]F (n) = [[f1]]F (n) ∨ [[f2]]F (n) (19)
+        return evaluateFilter(ast.getChild(0), currentNode) || evaluateFilter(ast.getChild(2), currentNode);
     }
 
     private static boolean handleNotFilter(ParseTree ast, Node currentNode) {
