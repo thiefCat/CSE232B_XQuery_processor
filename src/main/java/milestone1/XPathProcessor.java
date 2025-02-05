@@ -101,6 +101,11 @@ public class XPathProcessor {
 
 
     private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
+        // f   : relativePath         # rpFilter
+        if (filterNode instanceof XPathParser.RpFilterContext) {
+            return handleRpFilter(filterNode, currentNode);
+        }
+
         //  | relativePath  '=' STRING # stringFilter
         if (filterNode instanceof XPathParser.StringFilterContext) {
             return handleStringFilter(filterNode, currentNode);
@@ -149,6 +154,12 @@ public class XPathProcessor {
         return result;
     }
 
+    private static boolean handleRpFilter(ParseTree ast, Node currentNode) {
+        // [[rp]]F (n)
+        // = [[rp]]R(n) !=   <>       (14)
+        List<Node> rpResults = evaluate(ast.getChild(0), currentNode);
+        return rpResults != null && !rpResults.isEmpty();
+    }
     // [[rp = StringConstant]]F (n)
     // = ∃x ∈ [[rp]]R(n) x eq StringConstant (17)
     private static boolean handleStringFilter(ParseTree ast, Node currentNode) {
@@ -171,4 +182,6 @@ public class XPathProcessor {
         // No match, return false
         return false;
     }
+
+
 }
