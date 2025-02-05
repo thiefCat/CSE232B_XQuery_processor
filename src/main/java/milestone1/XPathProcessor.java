@@ -111,6 +111,11 @@ public class XPathProcessor {
             return handleStringFilter(filterNode, currentNode);
         }
 
+        //    | '(' f ')' # bracketFilter
+        if(filterNode instanceof  XPathParser.BracketFilterContext) {
+            return handleBracketFilter(filterNode, currentNode);
+        }
+
         //     | 'not' f   # notFilter
         if (filterNode instanceof XPathParser.NotFilterContext) {
             return handleNotFilter(filterNode, currentNode);
@@ -187,6 +192,13 @@ public class XPathProcessor {
         // No match, return false
         return false;
     }
+
+    private static boolean handleBracketFilter(ParseTree ast, Node currentNode) {
+        // [[(f)]]F (n)
+        // = [[f]]F (n) (18)
+        return evaluateFilter(ast.getChild(1), currentNode);
+    }
+
 
     private static boolean handleNotFilter(ParseTree ast, Node currentNode) {
         // [[not f]]F (n)
