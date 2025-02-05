@@ -50,6 +50,10 @@ public class XPathProcessor {
             return evaluate(ast.getChild(2), currentNode);
         }
 
+       //     | '(' relativePath  ')'    # bracketRP
+        if (ast instanceof XPathParser.BracketRPContext) {
+            return evaluate(ast.getChild(1), currentNode);
+        }
         if (ast instanceof XPathParser.ChildrenRPContext) {
             List<Node> results = handleChildrenRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
@@ -114,6 +118,12 @@ public class XPathProcessor {
         //    | '(' f ')' # bracketFilter
         if(filterNode instanceof  XPathParser.BracketFilterContext) {
             return handleBracketFilter(filterNode, currentNode);
+        }
+
+        //     | f 'and' f # andFilter
+        // e.g. doc("test.xml")/breakfast_menu/food[((description)) and name="Belgian Waffles"]
+        if(filterNode instanceof  XPathParser.AndFilterContext) {
+            return handleAndFilter(filterNode, currentNode);
         }
 
         //     | 'not' f   # notFilter
@@ -196,9 +206,14 @@ public class XPathProcessor {
     private static boolean handleBracketFilter(ParseTree ast, Node currentNode) {
         // [[(f)]]F (n)
         // = [[f]]F (n) (18)
+        //
         return evaluateFilter(ast.getChild(1), currentNode);
     }
 
+    private static boolean handleAndFilter(ParseTree ast, Node currentNode) {
+        // [[f1 and f2]]F (n) = [[f1]]F (n) ∧ [[f2]]F (n) (19)
+        return evaluateFilter(ast.getChild(0), currentNode) && evaluateFilter(ast.getChild(2), currentNode);
+    }
 
     private static boolean handleNotFilter(ParseTree ast, Node currentNode) {
         // [[not f]]F (n)
