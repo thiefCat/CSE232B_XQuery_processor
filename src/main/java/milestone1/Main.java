@@ -34,13 +34,13 @@ public class Main {
         XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
         ParseTree ast = parser.absolutePath();
 
-        System.out.println("Parsed XPath: " + ast.toStringTree(parser));
+//        System.out.println("Parsed XPath: " + ast.toStringTree(parser));
         Document document = XMLParser.loadXML(xmlFileName);
 
 
         Document resultTree = XPathProcessor.compute(ast, document);
         // save to "src/output.xml"
-//         XMLParser.saveXML(resultTree, "src/output.xml");
+        XMLParser.saveXML(resultTree, "src/output.xml");
     }
 
 }
