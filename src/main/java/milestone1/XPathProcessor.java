@@ -18,6 +18,7 @@ public class XPathProcessor {
     private static final String baseAddr = "src/main/resources/";
     public static Document compute(ParseTree ast) throws Exception {
         String xmlFileAddr = baseAddr + ast.getChild(0).getChild(1).getText().replace("\"", "");
+        System.out.println("XML File Address: "+xmlFileAddr);
         Document document = XMLParser.loadXML(xmlFileAddr);
 
         List<Node> resultNodes = evaluate(ast, document.getDocumentElement());
@@ -44,15 +45,17 @@ public class XPathProcessor {
             return evaluate(ast.getChild(2), currentNode);
         }
 
+        if (ast instanceof XPathParser.DescendantAPContext) {
+
+            return evaluate(ast.getChild(2), currentNode);
+        }
+
         if (ast instanceof XPathParser.ChildrenRPContext) {
             List<Node> results = handleChildrenRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
 
-//        if (ast instanceof XPathParser.DescendantAPContext) {
-//            return
-//        }
 
         if (ast instanceof XPathParser.AllChildrenRPContext) {
             return handleAllChildrenRP(ast, currentNode);
@@ -62,10 +65,14 @@ public class XPathProcessor {
             return handleSelfRP(ast, currentNode);
         }
 
-
         // Terminal Node
         if (ast instanceof XPathParser.TagRPContext) {
             return handleTagRP(ast, currentNode);
+        }
+
+        //   | relativePath  '[' f ']'  # filterRP
+        if (ast instanceof XPathParser.FilterRPContext) {
+            return handleFilterRP(ast, currentNode);
         }
 
         return null;
@@ -92,11 +99,14 @@ public class XPathProcessor {
         return result;
     }
 
-//    private static List<Node> handleDescentAP(ParseTree ast, Node currentNode) {
-//        List<Node> result = new ArrayList<>();
-//
-//        return null;
-//    }
+
+    private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
+        //  | relativePath  '=' STRING # stringFilter
+        if (filterNode instanceof XPathParser.StringFilterContext) {
+            return handleStringFilter(filterNode, currentNode);
+        }
+        return false;
+    }
 
     // rp1/rp2
     private static List<Node> handleChildrenRP(ParseTree ast, Node currentNode) {
@@ -120,5 +130,45 @@ public class XPathProcessor {
             }
         }
         return result;
+    }
+    // [[rp[f]]]R(n)
+    // = < x | x ← [[rp]]R(n), [[f]]F (x)
+    private static List<Node> handleFilterRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        List<Node> potentialXList = evaluate(ast.getChild(0), currentNode);
+        // The filter expression is at child index 2 in the parse tree.
+        ParseTree filterAST = ast.getChild(2);
+
+        for (Node x : potentialXList) {
+            // Check if filter evaluates to true for this node.
+            if (evaluateFilter(filterAST, x)) {
+                result.add(x);
+            }
+        }
+
+        return result;
+    }
+
+    // [[rp = StringConstant]]F (n)
+    // = ∃x ∈ [[rp]]R(n) x eq StringConstant (17)
+    private static boolean handleStringFilter(ParseTree ast, Node currentNode) {
+        // Extract and normalize the string literal (remove surrounding quotes).
+        String stringConstant = ast.getChild(2).getText();
+        if (stringConstant.length() >= 2) {
+            stringConstant = stringConstant.substring(1, stringConstant.length() - 1);
+        }
+
+        // Evaluate the relativePath (child index 0) against currentNode.
+        // This is a placeholder; assume there's a method to do this.
+        List<Node> resultNodes = evaluate(ast.getChild(0), currentNode);
+
+        // Check if any node's string value matches targetString.
+        for (Node node : resultNodes) {
+            if (node.getTextContent().equals(stringConstant)) {
+                return true;
+            }
+        }
+        // No match, return false
+        return false;
     }
 }
