@@ -1,12 +1,16 @@
 # XPath Evaluator
 
-To run the program, using the following command:
+To run the program, follow the following:
+
+
 
 ```
-./src/run.sh      
+mvn clean package
 ```
 
-
+```
+java -jar target/CSE232B_XPathEngine-jar-with-dependencies.jar "one_xpath_query.txt" "output_path.xml"
+```
 
 
 

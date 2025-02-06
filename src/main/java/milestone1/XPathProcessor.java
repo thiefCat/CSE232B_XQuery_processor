@@ -15,7 +15,7 @@ public class XPathProcessor {
     private static final String baseAddr = "src/main/resources/";
     public static List<Node> compute(ParseTree ast) throws Exception {
         String xmlFileAddr = baseAddr + ast.getChild(0).getChild(1).getText().replace("\"", "");
-        System.out.println("XML File Address: "+xmlFileAddr);
+        System.out.println("Input XML File Address: " + xmlFileAddr);
         Document document = XMLParser.loadXML(xmlFileAddr);
         List<Node> resultNodes = evaluate(ast, document);
         return resultNodes;

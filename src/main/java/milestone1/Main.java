@@ -19,7 +19,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         String XPathFileName = args[0];
         String outputFileName = args[1];
-        System.out.println("Xpath file path: " + XPathFileName);
+        System.out.println("Input Xpath file path: " + XPathFileName);
 
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(XPathFileName));
         XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
@@ -29,6 +29,7 @@ public class Main {
         // save to "src/output.xml"
 
         XMLParser.saveXML(result, outputFileName);
+        System.out.println("Output file successfully generated at " + args[1]);
     }
 
 }
