@@ -22,6 +22,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         String XPathFileName = args[0];
+        String OutputFileName = args[1];
         System.out.println("Xpath file path: " + XPathFileName);
 
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(XPathFileName));
@@ -30,7 +31,8 @@ public class Main {
 
         List<Node> result = XPathProcessor.compute(ast);
         // save to "src/output.xml"
-        XMLParser.saveXML(result, "src/output.xml");
+
+        XMLParser.saveXML(result, OutputFileName);
     }
 
 }

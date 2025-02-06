@@ -7,6 +7,9 @@ import org.w3c.dom.Node;
 
 import java.io.*;
 import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.*;
@@ -42,6 +45,14 @@ public class XMLParser {
     }
 
     public static void saveXML(List<Node> resultNodes, String outputPath) throws Exception {
+        // Todo:
+        // If no such Path, try to create such a path    // Check if the output directory exists, if not, create it
+        Path outputFilePath = Paths.get(outputPath);
+        Path parentDir = outputFilePath.getParent();
+
+        if (parentDir != null && !Files.exists(parentDir)) {
+            Files.createDirectories(parentDir); // Create the parent directory
+        }
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
