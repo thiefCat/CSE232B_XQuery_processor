@@ -47,6 +47,7 @@ public class XMLParser {
     public static void saveXML(List<Node> resultNodes, String outputPath) throws Exception {
         // Todo:
         // If no such Path, try to create such a path    // Check if the output directory exists, if not, create it
+
         Path outputFilePath = Paths.get(outputPath);
         Path parentDir = outputFilePath.getParent();
 

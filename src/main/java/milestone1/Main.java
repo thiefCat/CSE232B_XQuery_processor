@@ -8,10 +8,6 @@ import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import milestone1.XMLParser.*;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import java.io.OutputStream;
 import java.util.List;
 
 import org.w3c.dom.Node;
@@ -22,7 +18,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         String XPathFileName = args[0];
-        String OutputFileName = args[1];
+        String outputFileName = args[1];
         System.out.println("Xpath file path: " + XPathFileName);
 
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(XPathFileName));
@@ -32,7 +28,7 @@ public class Main {
         List<Node> result = XPathProcessor.compute(ast);
         // save to "src/output.xml"
 
-        XMLParser.saveXML(result, OutputFileName);
+        XMLParser.saveXML(result, outputFileName);
     }
 
 }
