@@ -76,6 +76,22 @@ public class XPathProcessor {
             return handleTagRP(ast, currentNode);
         }
 
+        // @attName
+        if (ast instanceof XPathParser.AttributeRPContext) {
+            return handleAttributeRP(ast, currentNode);
+        }
+
+        // ,
+        if (ast instanceof XPathParser.CommaRPContext) {
+            List<Node> leftRes = evaluate(ast.getChild(0), currentNode);
+            List<Node> rightRes = evaluate(ast.getChild(2), currentNode);
+            Set<Node> uniqueNodes = new LinkedHashSet<>();
+            uniqueNodes.addAll(leftRes);
+            uniqueNodes.addAll(rightRes);
+
+            return new ArrayList<>(uniqueNodes);
+        }
+
         //   | relativePath  '[' f ']'  # filterRP
         if (ast instanceof XPathParser.FilterRPContext) {
             return handleFilterRP(ast, currentNode);
@@ -138,6 +154,20 @@ public class XPathProcessor {
         return result;
     }
 
+    // @attrName
+    private static List<Node> handleAttributeRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        String targetAttrName = ast.getChild(1).getText();
+        NamedNodeMap allAttributes = currentNode.getAttributes();
+        for (int j = 0; j < allAttributes.getLength(); j++) {
+            Node attr = allAttributes.item(j);
+            if (attr.getNodeName().equals(targetAttrName)) {
+                result.add(attr);
+            }
+        }
+        return result;
+    }
+
 
     private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
         // f   : relativePath         # rpFilter
@@ -145,7 +175,6 @@ public class XPathProcessor {
             return handleRpFilter(filterNode, currentNode);
         }
         //      | relativePath  EQ relativePath   # eqFilter
-        // Can't think of a good example, since
         if (filterNode instanceof XPathParser.EqFilterContext) {
             return handleEqFilter(filterNode, currentNode);
         }
@@ -161,18 +190,18 @@ public class XPathProcessor {
         }
 
         //    | '(' f ')' # bracketFilter
-        if(filterNode instanceof  XPathParser.BracketFilterContext) {
+        if (filterNode instanceof  XPathParser.BracketFilterContext) {
             return handleBracketFilter(filterNode, currentNode);
         }
 
         //     | f 'and' f # andFilter
         // e.g. doc("test.xml")/breakfast_menu/food[((description)) and name="Belgian Waffles"]
-        if(filterNode instanceof  XPathParser.AndFilterContext) {
+        if (filterNode instanceof  XPathParser.AndFilterContext) {
             return handleAndFilter(filterNode, currentNode);
         }
         //     | f 'or' f  # orFilter
         // e.g. doc("test.xml")/breakfast_menu/food[((not description)) or name="Belgian Waffles"]
-        if(filterNode instanceof  XPathParser.OrFilterContext) {
+        if (filterNode instanceof  XPathParser.OrFilterContext) {
             return handleOrFilter(filterNode, currentNode);
         }
 
@@ -287,8 +316,6 @@ public class XPathProcessor {
             stringConstant = stringConstant.substring(1, stringConstant.length() - 1);
         }
 
-        // Evaluate the relativePath (child index 0) against currentNode.
-        // This is a placeholder; assume there's a method to do this.
         List<Node> resultNodes = evaluate(ast.getChild(0), currentNode);
 
         // Check if any node's string value matches targetString.
@@ -297,14 +324,12 @@ public class XPathProcessor {
                 return true;
             }
         }
-        // No match, return false
         return false;
     }
 
     private static boolean handleBracketFilter(ParseTree ast, Node currentNode) {
         // [[(f)]]F (n)
         // = [[f]]F (n) (18)
-        //
         return evaluateFilter(ast.getChild(1), currentNode);
     }
 
