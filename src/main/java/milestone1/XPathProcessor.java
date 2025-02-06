@@ -74,6 +74,11 @@ public class XPathProcessor {
             return handleSelfRP(ast, currentNode);
         }
 
+        //     | '..'          # parentRP
+        if (ast instanceof XPathParser.ParentRPContext) {
+            return handleParentRP(ast, currentNode);
+        }
+
         // Terminal Node
         if (ast instanceof XPathParser.TagRPContext) {
             return handleTagRP(ast, currentNode);
@@ -117,7 +122,12 @@ public class XPathProcessor {
         result.add(currentNode);
         return result;
     }
-
+    // ..
+    private static List<Node> handleParentRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        result.add(currentNode.getParentNode());
+        return result;
+    }
 
     private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
         // f   : relativePath         # rpFilter
