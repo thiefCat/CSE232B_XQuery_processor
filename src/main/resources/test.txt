@@ -1,1 +1,1 @@
-doc("test.xml")/breakfast_menu/.
+doc("test.xml")/breakfast_menu/food

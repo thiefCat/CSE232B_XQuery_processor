@@ -38,16 +38,7 @@ public class XMLParser {
         Document originalDoc = builder.parse(inputStream);
         originalDoc.getDocumentElement().normalize();
 
-        // Create a new Document with a dummy root
-        Document newDoc = builder.newDocument();
-        Element dummyRoot = newDoc.createElement("dummyRoot");
-        newDoc.appendChild(dummyRoot);
-
-        // Import and append the original root as a child of the dummy root
-        Node importedNode = newDoc.importNode(originalDoc.getDocumentElement(), true);
-        dummyRoot.appendChild(importedNode);
-
-        return newDoc;
+        return originalDoc;
     }
 
     public static void saveXML(List<Node> resultNodes, String outputPath) throws Exception {

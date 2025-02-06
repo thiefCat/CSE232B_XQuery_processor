@@ -3,9 +3,6 @@ package milestone1;
 import milestone1.autogen.ExpressionParser.XPathParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.w3c.dom.*;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.*;
 import milestone1.XMLParser.*;
 
@@ -20,7 +17,7 @@ public class XPathProcessor {
         String xmlFileAddr = baseAddr + ast.getChild(0).getChild(1).getText().replace("\"", "");
         System.out.println("XML File Address: "+xmlFileAddr);
         Document document = XMLParser.loadXML(xmlFileAddr);
-        List<Node> resultNodes = evaluate(ast, document.getDocumentElement());
+        List<Node> resultNodes = evaluate(ast, document);
         return resultNodes;
     }
 
@@ -28,7 +25,6 @@ public class XPathProcessor {
     public static List<Node> evaluate(ParseTree ast, Node currentNode) {
         // [doc(fileName)/rp]_A
         if (ast instanceof XPathParser.ChildAPContext) {
-//            currentNode
             return evaluate(ast.getChild(2), currentNode);
         }
         // [doc(fileName)//rp]_A
@@ -134,7 +130,11 @@ public class XPathProcessor {
     // ..
     private static List<Node> handleParentRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
-        result.add(currentNode.getParentNode());
+        Node parent = currentNode.getParentNode();
+        if (parent instanceof Document) {
+            return result;
+        }
+        result.add(parent);
         return result;
     }
 
