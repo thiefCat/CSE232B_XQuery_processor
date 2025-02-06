@@ -46,9 +46,13 @@ public class XPathProcessor {
         }
 
         if (ast instanceof XPathParser.DescendantAPContext) {
-
             return evaluate(ast.getChild(2), currentNode);
         }
+
+       //     | 'text()'      # textRP
+       if (ast instanceof XPathParser.TextRPContext) {
+           return handleTextRP(ast, currentNode);
+       }
 
        //     | '(' relativePath  ')'    # bracketRP
         if (ast instanceof XPathParser.BracketRPContext) {
@@ -59,6 +63,7 @@ public class XPathProcessor {
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
+        
 
 
         if (ast instanceof XPathParser.AllChildrenRPContext) {
@@ -89,7 +94,17 @@ public class XPathProcessor {
         NodeList children = currentNode.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                result.add(child);
+        }
+        return result;
+    }
+
+    private static List<Node> handleTextRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        NodeList children = currentNode.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.TEXT_NODE) {
                 result.add(child);
             }
         }
