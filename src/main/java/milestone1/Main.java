@@ -26,6 +26,7 @@ public class Main {
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(XPathFileName));
         XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
         ParseTree ast = parser.absolutePath();
+//        System.out.println();
 
         Document resultTree = XPathProcessor.compute(ast);
         // save to "src/output.xml"
