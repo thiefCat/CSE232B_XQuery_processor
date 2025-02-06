@@ -1,9 +1,6 @@
 package milestone1;
 
 import milestone1.autogen.ExpressionParser.XPathParser;
-import milestone1.autogen.ExpressionParser.XPathVisitor;
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.w3c.dom.*;
 
@@ -19,61 +16,66 @@ import milestone1.XMLParser.*;
 public class XPathProcessor {
 
     private static final String baseAddr = "src/main/resources/";
-    public static Document compute(ParseTree ast) throws Exception {
+    public static List<Node> compute(ParseTree ast) throws Exception {
         String xmlFileAddr = baseAddr + ast.getChild(0).getChild(1).getText().replace("\"", "");
         System.out.println("XML File Address: "+xmlFileAddr);
         Document document = XMLParser.loadXML(xmlFileAddr);
-
         List<Node> resultNodes = evaluate(ast, document.getDocumentElement());
-
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document newDoc = builder.newDocument();
-        Element resultRoot = newDoc.createElement("result");
-        newDoc.appendChild(resultRoot);
-
-        for (Node node : resultNodes) {
-            Node importedNode = newDoc.importNode(node, true);
-            resultRoot.appendChild(importedNode);
-        }
-
-        return newDoc;
+        return resultNodes;
     }
 
     // To DO
     public static List<Node> evaluate(ParseTree ast, Node currentNode) {
-//        System.out.println("Node Name: " + currentNode.getNodeName());
-//        System.out.println("Node Type: " + currentNode.getNodeType());
+        // [doc(fileName)/rp]_A
         if (ast instanceof XPathParser.ChildAPContext) {
+//            currentNode
             return evaluate(ast.getChild(2), currentNode);
         }
-
+        // [doc(fileName)//rp]_A
         if (ast instanceof XPathParser.DescendantAPContext) {
             return handleDescendantAP(ast, currentNode);
         }
 
+       //     | 'text()'      # textRP
+       if (ast instanceof XPathParser.TextRPContext) {
+           return handleTextRP(ast, currentNode);
+       }
+
+       //     | '(' relativePath  ')'    # bracketRP
+        if (ast instanceof XPathParser.BracketRPContext) {
+            return evaluate(ast.getChild(1), currentNode);
+        }
+
+        // [rp1/rp2]_R(n)
         if (ast instanceof XPathParser.ChildrenRPContext) {
             List<Node> results = handleChildrenRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
 
+        // [rp1//rp2]_R(n)
         if (ast instanceof XPathParser.DescendantRPContext) {
             List<Node> results = handleDescendantRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
 
-
+        // [∗]_R (n)
         if (ast instanceof XPathParser.AllChildrenRPContext) {
             return handleAllChildrenRP(currentNode);
         }
 
+        // [.]_R (n)
         if (ast instanceof XPathParser.SelfRPContext) {
             return handleSelfRP(currentNode);
         }
 
-        // Terminal Node
+        //     | '..'          # parentRP
+        if (ast instanceof XPathParser.ParentRPContext) {
+            return handleParentRP(ast, currentNode);
+        }
+
+        // [tagName]R (n)
         if (ast instanceof XPathParser.TagRPContext) {
             return handleTagRP(ast, currentNode);
         }
@@ -86,7 +88,7 @@ public class XPathProcessor {
         return null;
     }
 
-    // doc//Food -> doc/.//rp
+    // doc//rp -> doc/.//rp
     private static List<Node> handleDescendantAP(ParseTree ast, Node currentNode) {
         XPathParser.RelativePathContext newCtx = new XPathParser.RelativePathContext(null, -1);
         XPathParser.SelfRPContext selfRP = new XPathParser.SelfRPContext(newCtx);
@@ -109,6 +111,19 @@ public class XPathProcessor {
         return result;
     }
 
+    // text()
+    private static List<Node> handleTextRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        NodeList children = currentNode.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.TEXT_NODE) {
+                result.add(child);
+            }
+        }
+        return result;
+    }
+
     // .
     private static List<Node> handleSelfRP(Node currentNode) {
         List<Node> result = new ArrayList<>();
@@ -116,11 +131,54 @@ public class XPathProcessor {
         return result;
     }
 
+    // ..
+    private static List<Node> handleParentRP(ParseTree ast, Node currentNode) {
+        List<Node> result = new ArrayList<>();
+        result.add(currentNode.getParentNode());
+        return result;
+    }
+
 
     private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
+        // f   : relativePath         # rpFilter
+        if (filterNode instanceof XPathParser.RpFilterContext) {
+            return handleRpFilter(filterNode, currentNode);
+        }
+        //      | relativePath  EQ relativePath   # eqFilter
+        // Can't think of a good example, since
+        if (filterNode instanceof XPathParser.EqFilterContext) {
+            return handleEqFilter(filterNode, currentNode);
+        }
+        //      | relativePath  IS relativePath   # isFilter
+        // doc("test.xml")/breakfast_menu/food[description is description]
+        if (filterNode instanceof XPathParser.IsFilterContext) {
+            return handleIsFilter(filterNode, currentNode);
+        }
+
         //  | relativePath  '=' STRING # stringFilter
         if (filterNode instanceof XPathParser.StringFilterContext) {
             return handleStringFilter(filterNode, currentNode);
+        }
+
+        //    | '(' f ')' # bracketFilter
+        if(filterNode instanceof  XPathParser.BracketFilterContext) {
+            return handleBracketFilter(filterNode, currentNode);
+        }
+
+        //     | f 'and' f # andFilter
+        // e.g. doc("test.xml")/breakfast_menu/food[((description)) and name="Belgian Waffles"]
+        if(filterNode instanceof  XPathParser.AndFilterContext) {
+            return handleAndFilter(filterNode, currentNode);
+        }
+        //     | f 'or' f  # orFilter
+        // e.g. doc("test.xml")/breakfast_menu/food[((not description)) or name="Belgian Waffles"]
+        if(filterNode instanceof  XPathParser.OrFilterContext) {
+            return handleOrFilter(filterNode, currentNode);
+        }
+
+        //     | 'not' f   # notFilter
+        if (filterNode instanceof XPathParser.NotFilterContext) {
+            return handleNotFilter(filterNode, currentNode);
         }
         return false;
     }
@@ -135,12 +193,15 @@ public class XPathProcessor {
         return result;
     }
 
+    // rp1//rp2 -> rp1/rp2, rp1/*//rp2
     private static List<Node> handleDescendantRP(ParseTree ast, Node currentNode) {
         List<Node> result = new ArrayList<>();
         List<Node> rp1Results = evaluate(ast.getChild(0), currentNode);
+        // rp1/rp2
         for (Node n : rp1Results) {
             result.addAll(evaluate(ast.getChild(2), n));
         }
+        // rp1/*//rp2
         XPathParser.RelativePathContext newCtx = new XPathParser.RelativePathContext(null, -1);
         XPathParser.AllChildrenRPContext allChildrenRP = new XPathParser.AllChildrenRPContext(newCtx);
         XPathParser.DescendantRPContext descendantRP = new XPathParser.DescendantRPContext(newCtx);
@@ -184,6 +245,39 @@ public class XPathProcessor {
         return result;
     }
 
+    private static boolean handleRpFilter(ParseTree ast, Node currentNode) {
+        // [[rp]]F (n)
+        // = [[rp]]R(n) !=   <>       (14)
+        List<Node> rpResults = evaluate(ast.getChild(0), currentNode);
+        return rpResults != null && !rpResults.isEmpty();
+    }
+
+    private static boolean handleEqFilter(ParseTree ast, Node currentNode) {
+        List<Node> rpResults0 = evaluate(ast.getChild(0), currentNode);
+        List<Node> rpResults1 = evaluate(ast.getChild(2), currentNode);
+        for (Node node1 : rpResults0) {
+            for (Node node2 : rpResults1) {
+                if (node1.isEqualNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean handleIsFilter(ParseTree ast, Node currentNode) {
+        List<Node> rpResults0 = evaluate(ast.getChild(0), currentNode);
+        List<Node> rpResults1 = evaluate(ast.getChild(2), currentNode);
+        for (Node node1 : rpResults0) {
+            for (Node node2 : rpResults1) {
+                if (node1.isSameNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // [[rp = StringConstant]]F (n)
     // = ∃x ∈ [[rp]]R(n) x eq StringConstant (17)
     private static boolean handleStringFilter(ParseTree ast, Node currentNode) {
@@ -206,4 +300,29 @@ public class XPathProcessor {
         // No match, return false
         return false;
     }
+
+    private static boolean handleBracketFilter(ParseTree ast, Node currentNode) {
+        // [[(f)]]F (n)
+        // = [[f]]F (n) (18)
+        //
+        return evaluateFilter(ast.getChild(1), currentNode);
+    }
+
+    private static boolean handleAndFilter(ParseTree ast, Node currentNode) {
+        // [[f1 and f2]]F (n) = [[f1]]F (n) ∧ [[f2]]F (n) (19)
+        return evaluateFilter(ast.getChild(0), currentNode) && evaluateFilter(ast.getChild(2), currentNode);
+    }
+
+    private static boolean handleOrFilter(ParseTree ast, Node currentNode) {
+        // [[f1 and f2]]F (n) = [[f1]]F (n) ∨ [[f2]]F (n) (19)
+        return evaluateFilter(ast.getChild(0), currentNode) || evaluateFilter(ast.getChild(2), currentNode);
+    }
+
+    private static boolean handleNotFilter(ParseTree ast, Node currentNode) {
+        // [[not f]]F (n)
+        //  = ¬[[f]]F (n) (21)
+        return !evaluateFilter(ast.getChild(1), currentNode);
+    }
+
+
 }

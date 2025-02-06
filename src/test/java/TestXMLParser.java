@@ -6,6 +6,5 @@ public class TestXMLParser {
         String xmlFileName = "src/test/resources/j_caesar.xml";
         Document domTree = XMLParser.loadXML(xmlFileName);
         String outputPath = "src/output.xml";
-        XMLParser.saveXML(domTree, outputPath);
     }
 }

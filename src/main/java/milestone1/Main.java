@@ -12,6 +12,8 @@ import milestone1.XMLParser.*;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import java.io.OutputStream;
+import java.util.List;
+
 import org.w3c.dom.Node;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -22,15 +24,13 @@ public class Main {
         String XPathFileName = args[0];
         System.out.println("Xpath file path: " + XPathFileName);
 
-
         XPathLexer lexer = new XPathLexer(new ANTLRFileStream(XPathFileName));
         XPathParser parser = new XPathParser(new CommonTokenStream(lexer));
         ParseTree ast = parser.absolutePath();
-//        System.out.println();
 
-        Document resultTree = XPathProcessor.compute(ast);
+        List<Node> result = XPathProcessor.compute(ast);
         // save to "src/output.xml"
-        XMLParser.saveXML(resultTree, "src/output.xml");
+        XMLParser.saveXML(result, "src/output.xml");
     }
 
 }
