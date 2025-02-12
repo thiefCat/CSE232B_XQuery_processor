@@ -3,4 +3,11 @@
 java -jar lib/antlr-4.13.2-complete.jar -Dlanguage=Java -visitor -no-listener -o ./ antlr/XPath.g4
 
 
-## 
+## Run the code:
+1. Include lib/antlr-4.13.2-complete.jar in project dependencies.
+2. Run the main function with the following three parameters: 
+resource xml file, recourse single-line XPath txt file, output file
+
+For example,
+resources/j_caesar.xml resources/q1.txt output.xml  
+
