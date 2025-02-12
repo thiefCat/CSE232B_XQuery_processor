@@ -1,1 +1,0 @@
-doc("test.xml")/library/book/title, library/magazine/title
