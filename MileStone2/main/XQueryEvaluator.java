@@ -4,7 +4,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.util.List;
-
+import java.io.*;
 import java.io.InputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -15,9 +15,10 @@ import antlr.XQueryLexer;
 import antlr.XQueryParser;
 
 public class XQueryEvaluator {
-    public static List<Node> evaluateXQuery(InputStream input) throws Exception {
+    public static List<Node> evaluateXQuery(String XQueryFileName) throws Exception {
         // TODO: NEEDS DOUBLE CHECK
-        CharStream cs = CharStreams.fromStream(input);
+        InputStream xQueryIStream = new FileInputStream(XQueryFileName)
+        CharStream cs = CharStreams.fromStream(xQueryIStream);
         XQueryLexer lexer = new XQueryLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         XQueryParser parser = new XQueryParser(tokens);
@@ -29,8 +30,8 @@ public class XQueryEvaluator {
 
         XQueryVisitor visitor = new XQueryVisitor(doc);
 
-        // Start from the root rule (e.g., parser.xq())
-        List<Node> result = visitor.visit(parser.xquery());
-        return result;
+        // Start from the root rule (e.g., parser.xquery())
+        List<Node> resultNodes = visitor.visit(parser.xquery());
+        return resultNodes;
     }
 }
