@@ -1,0 +1,17 @@
+<catalog>
+    <cd>
+        <title>Empire Burlesque</title>
+        <artist>Bob Dylan</artist>
+        <price>10.90</price>
+    </cd>
+    <cd>
+        <title>Hide Your Heart</title>
+        <artist>Bonnie Tyler</artist>
+        <price>9.90</price>
+    </cd>
+    <cd>
+        <title>Greatest Hits</title>
+        <artist>Queen</artist>
+        <price>9.40</price>
+    </cd>
+</catalog>

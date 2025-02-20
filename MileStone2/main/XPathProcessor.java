@@ -357,6 +357,4 @@ public class XPathProcessor {
         //  = ¬[[f]]F (n) (21)
         return !evaluateFilter(ast.getChild(1), currentNode);
     }
-
-
 }
