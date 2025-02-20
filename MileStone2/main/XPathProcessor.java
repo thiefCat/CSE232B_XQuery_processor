@@ -1,7 +1,7 @@
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.w3c.dom.*;
 import java.util.*;
-import antlr.XPathParser;
+import antlr.XQueryParser;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,65 +33,65 @@ public class XPathProcessor {
     // To DO
     public static List<Node> evaluate(ParseTree ast, Node currentNode) {
         // [doc(fileName)/rp]_A
-        if (ast instanceof XPathParser.ChildAPContext) {
+        if (ast instanceof XQueryParser.ChildAPContext) {
             return evaluate(ast.getChild(2), currentNode);
         }
         // [doc(fileName)//rp]_A
-        if (ast instanceof XPathParser.DescendantAPContext) {
+        if (ast instanceof XQueryParser.DescendantAPContext) {
             return handleDescendantAP(ast, currentNode);
         }
 
        //     | 'text()'      # textRP
-       if (ast instanceof XPathParser.TextRPContext) {
+       if (ast instanceof XQueryParser.TextRPContext) {
            return handleTextRP(ast, currentNode);
        }
 
        //     | '(' relativePath  ')'    # bracketRP
-        if (ast instanceof XPathParser.BracketRPContext) {
+        if (ast instanceof XQueryParser.BracketRPContext) {
             return evaluate(ast.getChild(1), currentNode);
         }
 
         // [rp1/rp2]_R(n)
-        if (ast instanceof XPathParser.ChildrenRPContext) {
+        if (ast instanceof XQueryParser.ChildrenRPContext) {
             List<Node> results = handleChildrenRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
 
         // [rp1//rp2]_R(n)
-        if (ast instanceof XPathParser.DescendantRPContext) {
+        if (ast instanceof XQueryParser.DescendantRPContext) {
             List<Node> results = handleDescendantRP(ast, currentNode);
             List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
             return uniqueResults;
         }
 
         // [∗]_R (n)
-        if (ast instanceof XPathParser.AllChildrenRPContext) {
+        if (ast instanceof XQueryParser.AllChildrenRPContext) {
             return handleAllChildrenRP(currentNode);
         }
 
         // [.]_R (n)
-        if (ast instanceof XPathParser.SelfRPContext) {
+        if (ast instanceof XQueryParser.SelfRPContext) {
             return handleSelfRP(currentNode);
         }
 
         //     | '..'          # parentRP
-        if (ast instanceof XPathParser.ParentRPContext) {
+        if (ast instanceof XQueryParser.ParentRPContext) {
             return handleParentRP(ast, currentNode);
         }
 
         // [tagName]R (n)
-        if (ast instanceof XPathParser.TagRPContext) {
+        if (ast instanceof XQueryParser.TagRPContext) {
             return handleTagRP(ast, currentNode);
         }
 
         // @attName
-        if (ast instanceof XPathParser.AttributeRPContext) {
+        if (ast instanceof XQueryParser.AttributeRPContext) {
             return handleAttributeRP(ast, currentNode);
         }
 
         // ,
-        if (ast instanceof XPathParser.CommaRPContext) {
+        if (ast instanceof XQueryParser.CommaRPContext) {
             List<Node> leftRes = evaluate(ast.getChild(0), currentNode);
             List<Node> rightRes = evaluate(ast.getChild(2), currentNode);
             Set<Node> uniqueNodes = new LinkedHashSet<>();
@@ -102,7 +102,7 @@ public class XPathProcessor {
         }
 
         //   | relativePath  '[' f ']'  # filterRP
-        if (ast instanceof XPathParser.FilterRPContext) {
+        if (ast instanceof XQueryParser.FilterRPContext) {
             return handleFilterRP(ast, currentNode);
         }
 
@@ -111,9 +111,9 @@ public class XPathProcessor {
 
     // doc//rp -> doc/.//rp
     private static List<Node> handleDescendantAP(ParseTree ast, Node currentNode) {
-        XPathParser.RelativePathContext newCtx = new XPathParser.RelativePathContext(null, -1);
-        XPathParser.SelfRPContext selfRP = new XPathParser.SelfRPContext(newCtx);
-        XPathParser.DescendantRPContext descendantRP = new XPathParser.DescendantRPContext(newCtx);
+        XQueryParser.RelativePathContext newCtx = new XQueryParser.RelativePathContext(null, -1);
+        XQueryParser.SelfRPContext selfRP = new XQueryParser.SelfRPContext(newCtx);
+        XQueryParser.DescendantRPContext descendantRP = new XQueryParser.DescendantRPContext(newCtx);
         descendantRP.addChild(selfRP);
         descendantRP.children.add(ast.getChild(1));
         descendantRP.children.add(ast.getChild(2));
@@ -180,42 +180,42 @@ public class XPathProcessor {
 
     private static boolean evaluateFilter(ParseTree filterNode, Node currentNode) {
         // f   : relativePath         # rpFilter
-        if (filterNode instanceof XPathParser.RpFilterContext) {
+        if (filterNode instanceof XQueryParser.RpFilterContext) {
             return handleRpFilter(filterNode, currentNode);
         }
         //      | relativePath  EQ relativePath   # eqFilter
-        if (filterNode instanceof XPathParser.EqFilterContext) {
+        if (filterNode instanceof XQueryParser.EqFilterContext) {
             return handleEqFilter(filterNode, currentNode);
         }
         //      | relativePath  IS relativePath   # isFilter
         // doc("test.xml")/breakfast_menu/food[description is description]
-        if (filterNode instanceof XPathParser.IsFilterContext) {
+        if (filterNode instanceof XQueryParser.IsFilterContext) {
             return handleIsFilter(filterNode, currentNode);
         }
 
         //  | relativePath  '=' STRING # stringFilter
-        if (filterNode instanceof XPathParser.StringFilterContext) {
+        if (filterNode instanceof XQueryParser.StringFilterContext) {
             return handleStringFilter(filterNode, currentNode);
         }
 
         //    | '(' f ')' # bracketFilter
-        if (filterNode instanceof  XPathParser.BracketFilterContext) {
+        if (filterNode instanceof  XQueryParser.BracketFilterContext) {
             return handleBracketFilter(filterNode, currentNode);
         }
 
         //     | f 'and' f # andFilter
         // e.g. doc("test.xml")/breakfast_menu/food[((description)) and name="Belgian Waffles"]
-        if (filterNode instanceof  XPathParser.AndFilterContext) {
+        if (filterNode instanceof  XQueryParser.AndFilterContext) {
             return handleAndFilter(filterNode, currentNode);
         }
         //     | f 'or' f  # orFilter
         // e.g. doc("test.xml")/breakfast_menu/food[((not description)) or name="Belgian Waffles"]
-        if (filterNode instanceof  XPathParser.OrFilterContext) {
+        if (filterNode instanceof  XQueryParser.OrFilterContext) {
             return handleOrFilter(filterNode, currentNode);
         }
 
         //     | 'not' f   # notFilter
-        if (filterNode instanceof XPathParser.NotFilterContext) {
+        if (filterNode instanceof XQueryParser.NotFilterContext) {
             return handleNotFilter(filterNode, currentNode);
         }
         return false;
@@ -240,9 +240,9 @@ public class XPathProcessor {
             result.addAll(evaluate(ast.getChild(2), n));
         }
         // rp1/*//rp2
-        XPathParser.RelativePathContext newCtx = new XPathParser.RelativePathContext(null, -1);
-        XPathParser.AllChildrenRPContext allChildrenRP = new XPathParser.AllChildrenRPContext(newCtx);
-        XPathParser.DescendantRPContext descendantRP = new XPathParser.DescendantRPContext(newCtx);
+        XQueryParser.RelativePathContext newCtx = new XQueryParser.RelativePathContext(null, -1);
+        XQueryParser.AllChildrenRPContext allChildrenRP = new XQueryParser.AllChildrenRPContext(newCtx);
+        XQueryParser.DescendantRPContext descendantRP = new XQueryParser.DescendantRPContext(newCtx);
         descendantRP.addChild(allChildrenRP);
         descendantRP.children.add(ast.getChild(1));
         descendantRP.children.add(ast.getChild(2));
