@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class XPathProcessor {
     public static Document compute(Document document, ParseTree ast) throws Exception {
         List<Node> resultNodes = evaluate(ast, document);
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document resultDoc = builder.newDocument();
