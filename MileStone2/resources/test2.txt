@@ -1,2 +1,2 @@
 for $c in doc("cd_catalog.xml")/catalog/cd/title
-return <cheapCD>{ $t }</cheapCD>
+return <cheapCD>{ $c }</cheapCD>
