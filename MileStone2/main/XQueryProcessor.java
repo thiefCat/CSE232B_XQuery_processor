@@ -8,23 +8,26 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 public class XQueryProcessor {
 
+    static Document tmpDoc = null;
+
     public static Document compute(Document document, ParseTree ast) throws Exception {
         Map<String, List<Node>> emptyContext = new HashMap<>();
-        List<Node> resultNodes = evaluate(ast, document, emptyContext);
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        Document resultDoc = builder.newDocument();
+        tmpDoc = builder.newDocument();
+
+        List<Node> resultNodes = evaluate(ast, document, emptyContext);
 
         if (resultNodes == null || resultNodes.isEmpty()) {
-            return resultDoc;
+            return tmpDoc;
         }
 
         Node root = resultNodes.get(0);
-        Node importedRoot = resultDoc.importNode(root, true);
-        resultDoc.appendChild(importedRoot);
+        Node importedRoot = tmpDoc.importNode(root, true);
+        tmpDoc.appendChild(importedRoot);
 
-        return resultDoc;
+        return tmpDoc;
     }
 
     public static List<Node> evaluate(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
@@ -41,14 +44,10 @@ public class XQueryProcessor {
 
     private static Element makeElement(String tagName, List<Node> children) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.newDocument();
-
-            Element newElem = doc.createElement(tagName);
+            Element newElem = tmpDoc.createElement(tagName);
 
             for (Node child : children) {
-                Node importedChild = doc.importNode(child, true); // true => deep copy
+                Node importedChild = tmpDoc.importNode(child, true); // true => deep copy
                 newElem.appendChild(importedChild);
             }
 
@@ -56,6 +55,15 @@ public class XQueryProcessor {
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating new element for tag: " + tagName, e);
+        }
+    }
+
+    private static Node makeText(String text){
+        try {
+            Node newNode = tmpDoc.createTextNode(text);
+            return newNode;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating new textNode for text: " + text, e);
         }
     }
 
