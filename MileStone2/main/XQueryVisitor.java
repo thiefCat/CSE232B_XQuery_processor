@@ -12,7 +12,7 @@ public class XQueryVisitor extends XQueryBaseVisitor<List<Node>> {
     }
 
     @Override
-    public List<Node> visitXqFLWR(XQueryParser.FlwrXQueryContext ctx) {
+    public List<Node> visitFlwrXQuery(XQueryParser.FlwrXQueryContext ctx) {
         // 1. Evaluate for
         // 2. Evaluate let (optional)
         // 3. Evaluate where
@@ -22,12 +22,12 @@ public class XQueryVisitor extends XQueryBaseVisitor<List<Node>> {
     }
 
     @Override
-    public List<Node> visitXqVar(XQueryParser.VarXQueryContext ctx) {
+    public List<Node> visitVarXQuery(XQueryParser.VarXQueryContext ctx) {
         return null;
     }
 
     @Override
-    public List<Node> visitXqConstruct(XQueryParser.TagXQueryContext ctx) {
+    public List<Node> visitTagXQuery(XQueryParser.TagXQueryContext ctx) {
         return null;
     }
 
