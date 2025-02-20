@@ -22,6 +22,7 @@ public class Main {
         XQueryLexer lexer = new XQueryLexer(new ANTLRFileStream(XPathFileName));
         XQueryParser parser = new XQueryParser(new CommonTokenStream(lexer));
         ParseTree ast = parser.absolutePath();
+        // TODO: NEED TO CALL XQueryEvaluator
 
         Document document = XMLParser.loadXML(xmlFileName);
         Document resDocument = XPathProcessor.compute(document, ast);
