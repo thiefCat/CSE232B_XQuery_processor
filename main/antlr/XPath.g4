@@ -26,14 +26,16 @@ relativePath
 f   : relativePath         # rpFilter
     | relativePath  EQ relativePath   # eqFilter
     | relativePath  IS relativePath   # isFilter
-    | relativePath  '=' STRING # stringFilter
+    | relativePath  EQ STRING # stringFilter
     | '(' f ')' # bracketFilter
     | f 'and' f # andFilter
     | f 'or' f  # orFilter
     | 'not' f   # notFilter
     ;
 
-doc : 'doc(' FILENAME ')';
+doc : 'doc(' FILENAME ')'
+    | 'document(' FILENAME ')'
+    ;
 tagName : ID;
 attrName : ID;
 

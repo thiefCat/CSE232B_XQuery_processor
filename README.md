@@ -10,4 +10,6 @@ resource xml file, recourse single-line XPath txt file, output file
 
 For example,
 resources/j_caesar.xml resources/q1.txt output.xml  
-
+```
+java -cp lib/* main.Main resources/j_caesar.xml resources/q1.txt output.xml 
+```
