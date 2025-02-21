@@ -7,7 +7,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class XQueryProcessor {
-
     static Document tmpDoc = null;
 
     public static Document compute(Document document, ParseTree ast) throws Exception {
@@ -31,6 +30,10 @@ public class XQueryProcessor {
     }
 
     public static List<Node> evaluate(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        if (ast instanceof XQueryParser.BraceXQueryContext) {
+            return handleBraceXQuery(ast, currentNode, context);
+        }
+
         if (ast instanceof XQueryParser.TagXQueryContext) {
             return handleTagXQuery(ast, currentNode, context);
         }
@@ -67,6 +70,14 @@ public class XQueryProcessor {
         }
     }
 
+
+    private static List<Node> handleBraceXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        List<Node> resultNodes = new ArrayList<>();
+        ParseTree insideXQ = ast.getChild(1);
+        resultNodes = evaluate(insideXQ, currentNode, context);
+        return resultNodes;
+    }
+
     private static List<Node> handleTagXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
         List<Node> result = new ArrayList<>();
         String tagName = ast.getChild(0).getChild(1).getText();
@@ -81,4 +92,5 @@ public class XQueryProcessor {
 
         return XPathProcessor.evaluate(rpChild, currentNode);
     }
+
 }

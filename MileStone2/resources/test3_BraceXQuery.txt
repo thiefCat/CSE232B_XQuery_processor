@@ -1,0 +1,1 @@
+<result> {( doc("cd_catalog.xml")/catalog/cd/title )} </result>
