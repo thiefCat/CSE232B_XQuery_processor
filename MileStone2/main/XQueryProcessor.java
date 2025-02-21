@@ -187,6 +187,9 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.EqConditionContext) {
             return handleEqCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.NotConditionContext) {
+            return handleNotCondition(condition, currentNode, context);
+        }
         return false;
     }
 
@@ -203,6 +206,10 @@ public class XQueryProcessor {
             }
         }
         return false;
+    }
+
+    private static boolean handleNotCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        return !evaluateCondition(condition.getChild(1), currentNode, context);
     }
 
     private static List<Map<String, List<Node>>> handleWhereClause(
