@@ -9,22 +9,28 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class XQueryProcessor {
 
     public static Document compute(Document document, ParseTree ast) throws Exception {
-        Map<String, List<Node>> emptyContext = new HashMap<>();
-        List<Node> resultNodes = evaluate(ast, document, emptyContext);
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document resultDoc = builder.newDocument();
+        if (ast instanceof XQueryParser.ApXQueryContext) {
+            // a Xpath
+            return XPathProcessor.compute(document, ast.getChild(0));
+        } else {
+            // a Xquery
+            Map<String, List<Node>> emptyContext = new HashMap<>();
+            List<Node> resultNodes = evaluate(ast, document, emptyContext);
 
-        if (resultNodes == null || resultNodes.isEmpty()) {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document resultDoc = builder.newDocument();
+            if (resultNodes == null || resultNodes.isEmpty()) {
+                return resultDoc;
+            }
+
+            Node root = resultNodes.get(0);
+            Node importedRoot = resultDoc.importNode(root, true);
+            resultDoc.appendChild(importedRoot);
+
             return resultDoc;
         }
-
-        Node root = resultNodes.get(0);
-        Node importedRoot = resultDoc.importNode(root, true);
-        resultDoc.appendChild(importedRoot);
-
-        return resultDoc;
     }
 
     public static List<Node> evaluate(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
