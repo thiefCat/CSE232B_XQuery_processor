@@ -56,7 +56,13 @@ public class XQueryProcessor {
             return handleVarXQuery(ast, currentNode, context);
         }
 
+        if (ast instanceof XQueryParser.ScXQueryContext) {
+            return handleScXQuery((XQueryParser.ScXQueryContext) ast, currentNode, context);
+        }
 
+        if (ast instanceof XQueryParser.SingleSlashXQueryContext) {
+            return handleSingleSlashXQuery((XQueryParser.SingleSlashXQueryContext) ast, currentNode, context);
+        }
         return null;
     }
 
@@ -74,7 +80,7 @@ public class XQueryProcessor {
         }
     }
 
-    private static Node makeText(String text){
+    private static Node makeText(String text) {
         try {
             Node newNode = tmpDoc.createTextNode(text);
             return newNode;
@@ -89,15 +95,57 @@ public class XQueryProcessor {
         return newContext;
     }
 
+    private static List<Node> handleScXQuery(XQueryParser.ScXQueryContext scCtx, Node currentNode, Map<String, List<Node>> context) {
+        String str = scCtx.STRING().getText();
+        // TODO: Try deleting it
+        str = str.substring(1, str.length() - 1);
+
+        LinkedList<Node> res = new LinkedList<>();
+        res.add(tmpDoc.createTextNode(str));
+        return res;
+    }
+
+    private static List<Node> handleSingleSlashXQuery(XQueryParser.SingleSlashXQueryContext singleSlashCtx,
+                                                      Node currentNode,
+                                                      Map<String, List<Node>> context) {
+        // 1. Evaluate the left XQuery (XQ1)
+        List<Node> leftResults = evaluate(singleSlashCtx.xquery(), currentNode, context);
+        List<Node> finalResults = new ArrayList<>();
+
+        // 2. For each node in the leftResults, evaluate rp
+        ParseTree rpAst = singleSlashCtx.relativePath(); // or singleSlashCtx.getChild(2)
+        for (Node n : leftResults) {
+            List<Node> tmp = XPathProcessor.evaluate(rpAst, n);
+            finalResults.addAll(tmp);
+        }
+
+        // 3. Remove duplicates using a LinkedHashSet (or any other approach)
+        List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(finalResults));
+        return uniqueResults;
+    }
+
+
     private static List<Node> handleFLWRXQuery(XQueryParser.FlwrXQueryContext flwrCtx, Node currentNode, Map<String, List<Node>> context) {
         List<Node> result = new ArrayList<>();
         XQueryParser.ForClauseContext forCtx = flwrCtx.forClause();
         XQueryParser.LetClauseContext letCtx = flwrCtx.letClause();
         XQueryParser.WhereClauseContext whereCtx = flwrCtx.whereClause();
         XQueryParser.ReturnClauseContext returnCtx = flwrCtx.returnClause();
+
         List<Map<String, List<Node>>> contextList = new ArrayList<>();
         contextList.add(context);
+
+        // ForClause
         contextList = handleForClause(forCtx, currentNode, contextList);
+
+        // LetClause
+
+        // WhereClause
+        // Apply whereClause filtering if it exists
+        if (whereCtx != null) {
+            contextList = handleWhereClause(whereCtx, currentNode, contextList);
+        }
+        // ReturnClause
         for (Map<String, List<Node>> ctx: contextList) {
             ParseTree returnQuery = returnCtx.getChild(1);
             List<Node> xqueryRes = evaluate(returnQuery, currentNode, ctx);
@@ -134,6 +182,50 @@ public class XQueryProcessor {
         }
         return curr;
     }
+
+    private static boolean evaluateCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context) {
+        if (condition instanceof XQueryParser.EqConditionContext) {
+            return handleEqCondition(condition, currentNode, context);
+        }
+        return false;
+    }
+
+    private static boolean handleEqCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        // EqCondition:
+        // ∃x ∈ [[X Q1 ]]X (C ) ∃y ∈ [[X Q2 ]]X (C ) x eq y
+        List<Node> xqResults0 = evaluate(condition.getChild(0), currentNode, context);
+        List<Node> xqResults1 = evaluate(condition.getChild(2), currentNode, context);
+        for (Node node1 : xqResults0) {
+            for (Node node2 : xqResults1) {
+                if (node1.isEqualNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static List<Map<String, List<Node>>> handleWhereClause(
+            XQueryParser.WhereClauseContext whereClauseCtx,
+            Node currentNode,
+            List<Map<String, List<Node>>> inputContextList) {
+
+        List<Map<String, List<Node>>> filteredContextList = new ArrayList<>();
+
+        // Get the where clause condition (XQuery expression that must evaluate to true)
+        ParseTree condition = whereClauseCtx.getChild(1);
+
+        for (Map<String, List<Node>> ctx : inputContextList) {
+            boolean conditionResult = evaluateCondition(condition, currentNode, ctx);
+
+            if (conditionResult) {
+                filteredContextList.add(ctx);
+            }
+        }
+
+        return filteredContextList;
+    }
+
 
     private static List<Node> handleVarXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
         String varName = ast.getText();
