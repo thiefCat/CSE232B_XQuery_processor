@@ -7,6 +7,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class XQueryProcessor {
+    static Document tmpDoc = null;
 
     public static Document compute(Document document, ParseTree ast) throws Exception {
 
@@ -16,24 +17,33 @@ public class XQueryProcessor {
         } else {
             // a Xquery
             Map<String, List<Node>> emptyContext = new HashMap<>();
-            List<Node> resultNodes = evaluate(ast, document, emptyContext);
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document resultDoc = builder.newDocument();
+            tmpDoc = builder.newDocument();
+
+            List<Node> resultNodes = evaluate(ast, document, emptyContext);
+
             if (resultNodes == null || resultNodes.isEmpty()) {
-                return resultDoc;
+                return tmpDoc;
             }
 
             Node root = resultNodes.get(0);
-            Node importedRoot = resultDoc.importNode(root, true);
-            resultDoc.appendChild(importedRoot);
+            Node importedRoot = tmpDoc.importNode(root, true);
+            tmpDoc.appendChild(importedRoot);
 
-            return resultDoc;
+            return tmpDoc;
         }
     }
 
     public static List<Node> evaluate(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        if (ast instanceof XQueryParser.FlwrXQueryContext) {
+            return handleFLWRXQuery((XQueryParser.FlwrXQueryContext) ast, currentNode, context);
+        }
+        if (ast instanceof XQueryParser.BraceXQueryContext) {
+            return handleBraceXQuery(ast, currentNode, context);
+        }
+
         if (ast instanceof XQueryParser.TagXQueryContext) {
             return handleTagXQuery(ast, currentNode, context);
         }
@@ -42,27 +52,47 @@ public class XQueryProcessor {
             return handleApXQuery(ast, currentNode, context);
         }
 
+
         return null;
     }
 
     private static Element makeElement(String tagName, List<Node> children) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.newDocument();
-
-            Element newElem = doc.createElement(tagName);
-
+            Element newElem = tmpDoc.createElement(tagName);
             for (Node child : children) {
-                Node importedChild = doc.importNode(child, true); // true => deep copy
+                Node importedChild = tmpDoc.importNode(child, true); // true => deep copy
                 newElem.appendChild(importedChild);
             }
-
             return newElem;
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating new element for tag: " + tagName, e);
         }
+    }
+
+    private static Node makeText(String text){
+        try {
+            Node newNode = tmpDoc.createTextNode(text);
+            return newNode;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating new textNode for text: " + text, e);
+        }
+    }
+
+    private static List<Node> handleFLWRXQuery(XQueryParser.FlwrXQueryContext flwrCtx, Node currentNode, Map<String, List<Node>> context) {
+        XQueryParser.ForClauseContext forCtx = flwrCtx.forClause();
+        XQueryParser.LetClauseContext letCtx = flwrCtx.letClause();
+        XQueryParser.WhereClauseContext whereCtx = flwrCtx.whereClause();
+        XQueryParser.ReturnClauseContext returnCtx = flwrCtx.returnClause();
+
+        return null;
+    }
+
+
+    private static List<Node> handleBraceXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        ParseTree insideXQ = ast.getChild(1);
+        List<Node> resultNodes = evaluate(insideXQ, currentNode, context);
+        return resultNodes;
     }
 
     private static List<Node> handleTagXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
@@ -79,4 +109,5 @@ public class XQueryProcessor {
 
         return XPathProcessor.evaluate(rpChild, currentNode);
     }
+
 }
