@@ -52,6 +52,10 @@ public class XQueryProcessor {
             return handleApXQuery(ast, currentNode, context);
         }
 
+        if (ast instanceof XQueryParser.VarXQueryContext) {
+            return handleVarXQuery(ast, currentNode, context);
+        }
+
 
         return null;
     }
@@ -79,15 +83,62 @@ public class XQueryProcessor {
         }
     }
 
+    private static Map<String, List<Node>> extendContext(Map<String, List<Node>> prevCtx, String varName, List<Node> items) {
+        Map<String, List<Node>> newContext = new HashMap<>(prevCtx);
+        newContext.put(varName, items);
+        return newContext;
+    }
+
     private static List<Node> handleFLWRXQuery(XQueryParser.FlwrXQueryContext flwrCtx, Node currentNode, Map<String, List<Node>> context) {
+        List<Node> result = new ArrayList<>();
         XQueryParser.ForClauseContext forCtx = flwrCtx.forClause();
         XQueryParser.LetClauseContext letCtx = flwrCtx.letClause();
         XQueryParser.WhereClauseContext whereCtx = flwrCtx.whereClause();
         XQueryParser.ReturnClauseContext returnCtx = flwrCtx.returnClause();
-
-        return null;
+        List<Map<String, List<Node>>> contextList = new ArrayList<>();
+        contextList.add(context);
+        contextList = handleForClause(forCtx, currentNode, contextList);
+        for (Map<String, List<Node>> ctx: contextList) {
+            ParseTree returnQuery = returnCtx.getChild(1);
+            List<Node> xqueryRes = evaluate(returnQuery, currentNode, ctx);
+            result.addAll(xqueryRes);
+        }
+        return result;
     }
 
+    // given a foreClauseContext, return a list of contexts (each combination of results of for clauses)
+    // TO DO: assumption that given input context is empty
+    private static List<Map<String, List<Node>>> handleForClause(XQueryParser.ForClauseContext forClauseCtx, Node currentNode, List<Map<String, List<Node>>> inputContextList ) {
+        List<Map<String, List<Node>>> curr = inputContextList;
+        int forClauseCount = forClauseCtx.var().size(); // number of for clauses
+        for (int i = 0; i < forClauseCount; i++) {
+            ParseTree varNode = forClauseCtx.var(i);
+            ParseTree xqueryAst = forClauseCtx.xquery(i);
+            String varName = varNode.getText();
+
+            List<Map<String, List<Node>>> newContextList = new ArrayList<>();
+            // for each previous combinations, {{a1}, {a2}}
+            for (Map<String, List<Node>> ctx : curr) {
+                // calculate new xquery results
+                // {a1}
+                List<Node> xqueryRes = evaluate(xqueryAst, currentNode, ctx); // {b1, b2}
+
+                for (Node n : xqueryRes) {
+                    Map<String, List<Node>> newCtx = extendContext(ctx, varName, Collections.singletonList(n));
+                    newContextList.add(newCtx);
+                }
+                // {{a1, b1}, {a1, b2}}
+            }
+            // newContextList: {{a1, b1}, {a1, b2}, {a2, b3}, {a2, b4}}
+            curr = newContextList;
+        }
+        return curr;
+    }
+
+    private static List<Node> handleVarXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        String varName = ast.getText();
+        return context.getOrDefault(varName, Collections.emptyList());
+    }
 
     private static List<Node> handleBraceXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
         ParseTree insideXQ = ast.getChild(1);
