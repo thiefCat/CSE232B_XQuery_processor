@@ -260,6 +260,9 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.EqConditionContext) {
             return handleEqCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.IsConditionContext) {
+            return handleIsCondition(condition, currentNode, context);
+        }
         if (condition instanceof XQueryParser.NotConditionContext) {
             return handleNotCondition(condition, currentNode, context);
         }
@@ -283,6 +286,18 @@ public class XQueryProcessor {
         for (Node node1 : xqResults0) {
             for (Node node2 : xqResults1) {
                 if (node1.isEqualNode(node2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private static boolean handleIsCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        List<Node> xqResults0 = evaluate(condition.getChild(0), currentNode, context);
+        List<Node> xqResults1 = evaluate(condition.getChild(2), currentNode, context);
+        for (Node node1 : xqResults0) {
+            for (Node node2 : xqResults1) {
+                if (node1.isSameNode(node2)) {
                     return true;
                 }
             }
