@@ -269,6 +269,9 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.AndConditionContext) {
             return handleAndCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.ParenthesizedConditionContext) {
+            return handleParenthesizedCondition(condition, currentNode, context);
+        }
         return false;
     }
 
@@ -289,6 +292,9 @@ public class XQueryProcessor {
 
     private static boolean handleNotCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
         return !evaluateCondition(condition.getChild(1), currentNode, context);
+    }
+    private static boolean handleParenthesizedCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        return evaluateCondition(condition.getChild(1), currentNode, context);
     }
     private static boolean handleAndCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
         return evaluateCondition(condition.getChild(0), currentNode, context) && evaluateCondition(condition.getChild(2), currentNode, context);

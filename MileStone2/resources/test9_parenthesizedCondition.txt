@@ -1,0 +1,5 @@
+<result> {
+  for $c in doc("cd_catalog.xml")/catalog/cd
+  where ($c/artist/text() = "Bonnie Tyler1" and ($c/title/text() = "Hide Your Heart"))
+  return <cheapCD>{ $c/price }</cheapCD>
+} </result>
