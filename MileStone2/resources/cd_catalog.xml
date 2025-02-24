@@ -8,7 +8,17 @@
     <cd>
         <title>Hide Your Heart</title>
         <artist>Bonnie Tyler</artist>
+        <price>9.80</price>
+    </cd>
+    <cd>
+        <title>Hide Your Heart1</title>
+        <artist>Bonnie Tyler</artist>
         <price>9.90</price>
+    </cd>
+    <cd>
+        <title>Hide Your Heart</title>
+        <artist>Bonnie Tyler1</artist>
+        <price>10.10</price>
     </cd>
     <cd>
         <title>Greatest Hits</title>
