@@ -157,8 +157,8 @@ public class XQueryProcessor {
 
     private static List<Node> handleApXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
         ParseTree rpChild = ast.getChild(0);
-
         return XPathProcessor.evaluate(rpChild, currentNode);
     }
 
 }
+
