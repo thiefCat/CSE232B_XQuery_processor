@@ -119,7 +119,7 @@ public class XQueryProcessor {
             finalResults.addAll(tmp);
         }
 
-        // 3. Remove duplicates using a LinkedHashSet (or any other approach)
+        // 3. Remove duplicates using a LinkedHashSet
         List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(finalResults));
         return uniqueResults;
     }
@@ -139,9 +139,13 @@ public class XQueryProcessor {
         contextList = handleForClause(forCtx, currentNode, contextList);
 
         // LetClause
+        if (flwrCtx.letClause() != null) {
+            contextList = handleLetClause(flwrCtx.letClause(), currentNode, contextList);
+        }
 
         // WhereClause
         // Apply whereClause filtering if it exists
+        // For each context, evaluate the whereClause
         if (whereCtx != null) {
             contextList = handleWhereClause(whereCtx, currentNode, contextList);
         }
@@ -155,14 +159,12 @@ public class XQueryProcessor {
     }
 
     // given a foreClauseContext, return a list of contexts (each combination of results of for clauses)
-    // TO DO: assumption that given input context is empty
     private static List<Map<String, List<Node>>> handleForClause(XQueryParser.ForClauseContext forClauseCtx, Node currentNode, List<Map<String, List<Node>>> inputContextList ) {
         List<Map<String, List<Node>>> curr = inputContextList;
         int forClauseCount = forClauseCtx.var().size(); // number of for clauses
         for (int i = 0; i < forClauseCount; i++) {
-            ParseTree varNode = forClauseCtx.var(i);
             ParseTree xqueryAst = forClauseCtx.xquery(i);
-            String varName = varNode.getText();
+            String varName = forClauseCtx.var(i).getText();
 
             List<Map<String, List<Node>>> newContextList = new ArrayList<>();
             // for each previous combinations, {{a1}, {a2}}
@@ -181,6 +183,31 @@ public class XQueryProcessor {
             curr = newContextList;
         }
         return curr;
+    }
+
+    private static List<Map<String, List<Node>>> handleLetClause(
+        XQueryParser.LetClauseContext letClauseCtx,
+        Node currentNode,
+        List<Map<String, List<Node>>> inputContextList
+    ) {
+        List<Map<String, List<Node>>> res = new ArrayList<>();
+        // for each context given by for clause
+        for (Map<String, List<Node>> ctx : inputContextList) {
+
+            Map<String, List<Node>> newCtx = new HashMap<>(ctx);
+
+            int letCount = letClauseCtx.var().size();
+            for (int i = 0; i < letCount; i++) {
+                String varName = letClauseCtx.var(i).getText();
+                ParseTree xqueryAst = letClauseCtx.xquery(i);
+
+                List<Node> xqResult = evaluate(xqueryAst, currentNode, newCtx);
+                newCtx.put(varName, xqResult);
+            }
+
+            res.add(newCtx);
+        }
+        return res;
     }
 
     private static boolean evaluateCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context) {
@@ -213,15 +240,16 @@ public class XQueryProcessor {
     }
 
     private static List<Map<String, List<Node>>> handleWhereClause(
-            XQueryParser.WhereClauseContext whereClauseCtx,
-            Node currentNode,
-            List<Map<String, List<Node>>> inputContextList) {
+        XQueryParser.WhereClauseContext whereClauseCtx,
+        Node currentNode,
+        List<Map<String, List<Node>>> inputContextList) {
 
         List<Map<String, List<Node>>> filteredContextList = new ArrayList<>();
 
         // Get the where clause condition (XQuery expression that must evaluate to true)
         ParseTree condition = whereClauseCtx.getChild(1);
 
+        // For each context given by forClause, check the whereClause, if true, keep the context
         for (Map<String, List<Node>> ctx : inputContextList) {
             boolean conditionResult = evaluateCondition(condition, currentNode, ctx);
 

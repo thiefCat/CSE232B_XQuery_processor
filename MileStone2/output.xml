@@ -1,11 +1,9 @@
 <result>
-  <cheapCD>
-    <title>Empire Burlesque</title>
-  </cheapCD>
-  <cheapCD>
+  <filteredCD>
+    <title>Empire Burlesque1</title>
+    <title>Empire Burlesque2</title>
+  </filteredCD>
+  <filteredCD>
     <title>Hide Your Heart</title>
-  </cheapCD>
-  <cheapCD>
-    <title>Greatest Hits</title>
-  </cheapCD>
+  </filteredCD>
 </result>
