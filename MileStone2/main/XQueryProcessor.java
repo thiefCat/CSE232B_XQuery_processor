@@ -40,8 +40,13 @@ public class XQueryProcessor {
         if (ast instanceof XQueryParser.FlwrXQueryContext) {
             return handleFLWRXQuery((XQueryParser.FlwrXQueryContext) ast, currentNode, context);
         }
+
         if (ast instanceof XQueryParser.BraceXQueryContext) {
             return handleBraceXQuery(ast, currentNode, context);
+        }
+
+        if (ast instanceof XQueryParser.CommaXQueryContext) {
+            return handleCommaXQuery(ast, currentNode, context);
         }
 
         if (ast instanceof XQueryParser.TagXQueryContext) {
@@ -63,6 +68,15 @@ public class XQueryProcessor {
         if (ast instanceof XQueryParser.SingleSlashXQueryContext) {
             return handleSingleSlashXQuery((XQueryParser.SingleSlashXQueryContext) ast, currentNode, context);
         }
+
+        if (ast instanceof XQueryParser.DoubleSlashXQueryContext) {
+            return handleDoubleSlashXQuery((XQueryParser.DoubleSlashXQueryContext) ast, currentNode, context);
+        }
+
+        if (ast instanceof XQueryParser.LetXQueryContext) {
+            return handleLetXQuery((XQueryParser.LetXQueryContext) ast, currentNode, context);
+        }
+
         return null;
     }
 
@@ -95,6 +109,19 @@ public class XQueryProcessor {
         return newContext;
     }
 
+    private static List<Node> handleLetXQuery(XQueryParser.LetXQueryContext letXQCtx, Node currentNode, Map<String, List<Node>> context) {
+        XQueryParser.LetClauseContext letCtx = letXQCtx.letClause();
+        ParseTree xquery = letXQCtx.xquery();
+        List<Map<String, List<Node>>> inputCtxList = new ArrayList<>();
+        inputCtxList.add(context);
+        // Extend context by evaluating the letClause
+        List<Map<String, List<Node>>> extendedCtxList = handleLetClause(letCtx, currentNode, inputCtxList);
+        Map<String, List<Node>> newCtx = extendedCtxList.get(0);
+        List<Node> result = new ArrayList<>();
+        result.addAll(evaluate(xquery, currentNode, newCtx));
+        return result;
+    }
+
     private static List<Node> handleScXQuery(XQueryParser.ScXQueryContext scCtx, Node currentNode, Map<String, List<Node>> context) {
         String str = scCtx.STRING().getText();
         // TODO: Try deleting it
@@ -114,6 +141,25 @@ public class XQueryProcessor {
 
         // 2. For each node in the leftResults, evaluate rp
         ParseTree rpAst = singleSlashCtx.relativePath(); // or singleSlashCtx.getChild(2)
+        for (Node n : leftResults) {
+            List<Node> tmp = XPathProcessor.evaluate(rpAst, n);
+            finalResults.addAll(tmp);
+        }
+
+        // 3. Remove duplicates using a LinkedHashSet
+        List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(finalResults));
+        return uniqueResults;
+    }
+
+    private static List<Node> handleDoubleSlashXQuery(XQueryParser.DoubleSlashXQueryContext doubleSlashCtx,
+                                                      Node currentNode,
+                                                      Map<String, List<Node>> context) {
+        // 1. Evaluate the left XQuery (XQ1)
+        List<Node> leftResults = evaluate(doubleSlashCtx.xquery(), currentNode, context);
+        List<Node> finalResults = new ArrayList<>();
+
+        // 2. For each node in the leftResults, evaluate rp
+        ParseTree rpAst = doubleSlashCtx.relativePath(); // or singleSlashCtx.getChild(2)
         for (Node n : leftResults) {
             List<Node> tmp = XPathProcessor.evaluate(rpAst, n);
             finalResults.addAll(tmp);
@@ -271,6 +317,17 @@ public class XQueryProcessor {
         ParseTree insideXQ = ast.getChild(1);
         List<Node> resultNodes = evaluate(insideXQ, currentNode, context);
         return resultNodes;
+    }
+
+    private static List<Node> handleCommaXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
+        ParseTree leftXQ = ast.getChild(0);
+        ParseTree rightXQ = ast.getChild(2);
+        List<Node> leftRes = evaluate(leftXQ, currentNode, context);
+        List<Node> rightRes = evaluate(rightXQ, currentNode, context);
+        List<Node> result = new ArrayList<>();
+        result.addAll(leftRes);
+        result.addAll(rightRes);
+        return result;
     }
 
     private static List<Node> handleTagXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
