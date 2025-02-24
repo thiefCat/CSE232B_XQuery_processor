@@ -263,6 +263,9 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.NotConditionContext) {
             return handleNotCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.OrConditionContext) {
+            return handleOrCondition(condition, currentNode, context);
+        }
         return false;
     }
 
@@ -283,6 +286,9 @@ public class XQueryProcessor {
 
     private static boolean handleNotCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
         return !evaluateCondition(condition.getChild(1), currentNode, context);
+    }
+    private static boolean handleOrCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        return evaluateCondition(condition.getChild(0), currentNode, context) || evaluateCondition(condition.getChild(2), currentNode, context);
     }
 
     private static List<Map<String, List<Node>>> handleWhereClause(

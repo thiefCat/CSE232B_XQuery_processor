@@ -1,0 +1,5 @@
+<result> {
+  for $c in doc("cd_catalog.xml")/catalog/cd
+  where $c/artist/text() = "Queen" or $c/artist/text() = "Bob Dylan"
+  return <cheapCD>{ $c/title }</cheapCD>
+} </result>
