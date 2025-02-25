@@ -22,11 +22,14 @@ public class XPathProcessor {
         resultDoc.appendChild(rootElement);
 
         // Append all result nodes to the <RESULT> element
-        for (Node node : resultNodes) {
-            Node importedNode = resultDoc.importNode(node, true); // Import node into new document
-            rootElement.appendChild(importedNode);
+        if (resultNodes.isEmpty()) {
+            rootElement.appendChild(resultDoc.createTextNode(" "));
+        }else {
+            for (Node node : resultNodes) {
+                Node importedNode = resultDoc.importNode(node, true); // Import node into new document
+                rootElement.appendChild(importedNode);
+            }
         }
-
         return resultDoc;
     }
 
