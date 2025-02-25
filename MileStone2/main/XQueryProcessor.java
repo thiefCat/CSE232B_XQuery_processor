@@ -158,10 +158,18 @@ public class XQueryProcessor {
         List<Node> leftResults = evaluate(doubleSlashCtx.xquery(), currentNode, context);
         List<Node> finalResults = new ArrayList<>();
 
-        // 2. For each node in the leftResults, evaluate rp
-        ParseTree rpAst = doubleSlashCtx.relativePath(); // or singleSlashCtx.getChild(2)
+        // 2. For each node in the leftResults, evaluate //rp
+        // create a selfRP
+        XQueryParser.RelativePathContext newCtx = new XQueryParser.RelativePathContext(null, -1);
+        XQueryParser.SelfRPContext selfRP = new XQueryParser.SelfRPContext(newCtx);
+        // create a descendantRP
+        XQueryParser.DescendantRPContext descendantRP = new XQueryParser.DescendantRPContext(newCtx);
+        descendantRP.addChild(selfRP);
+        descendantRP.children.add(doubleSlashCtx.getChild(1));
+        descendantRP.children.add(doubleSlashCtx.getChild(2));
+
         for (Node n : leftResults) {
-            List<Node> tmp = XPathProcessor.evaluate(rpAst, n);
+            List<Node> tmp = XPathProcessor.evaluate(descendantRP, n);
             finalResults.addAll(tmp);
         }
 

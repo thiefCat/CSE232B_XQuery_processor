@@ -4,6 +4,9 @@
         <title>Empire Burlesque2</title>
         <artist>Bob Dylan</artist>
         <price>10.90</price>
+        <subcd>
+            <title> subCD Title </title>>
+        </subcd>>
     </cd>
     <cd>
         <title>Hide Your Heart</title>
