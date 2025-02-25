@@ -127,7 +127,7 @@ public class XQueryProcessor {
         // TODO: Try deleting it
         str = str.substring(1, str.length() - 1);
 
-        LinkedList<Node> res = new LinkedList<>();
+        List<Node> res = new LinkedList<>();
         res.add(tmpDoc.createTextNode(str));
         return res;
     }
@@ -146,8 +146,7 @@ public class XQueryProcessor {
             finalResults.addAll(tmp);
         }
 
-        // 3. Remove duplicates using a LinkedHashSet
-        List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(finalResults));
+        List<Node> uniqueResults = unique(finalResults);
         return uniqueResults;
     }
 
@@ -173,8 +172,7 @@ public class XQueryProcessor {
             finalResults.addAll(tmp);
         }
 
-        // 3. Remove duplicates using a LinkedHashSet
-        List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(finalResults));
+        List<Node> uniqueResults = unique(finalResults);
         return uniqueResults;
     }
 
@@ -425,6 +423,24 @@ public class XQueryProcessor {
     private static List<Node> handleApXQuery(ParseTree ast, Node currentNode, Map<String, List<Node>> context) {
         ParseTree rpChild = ast.getChild(0);
         return XPathProcessor.evaluate(rpChild, currentNode);
+    }
+    private static List<Node> unique(List<Node> nodes) {
+        List<Node> uniqueNodes = new ArrayList<>();
+
+        for (Node node : nodes) {
+            boolean isDuplicate = false;
+            for (Node uniqueNode : uniqueNodes) {
+                if (node.isEqualNode(uniqueNode)) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                uniqueNodes.add(node);
+            }
+        }
+
+        return uniqueNodes;
     }
 
 }
