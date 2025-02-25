@@ -278,8 +278,43 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.EmptyConditionContext) {
             return handleEmptyCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.SatisfyConditionContext) {
+            return handleSatisfyCondition((XQueryParser.SatisfyConditionContext)condition, currentNode, context);
+        }
         return false;
     }
+
+    // Implementation of satisfyCondition handling:
+    private static boolean handleSatisfyCondition(XQueryParser.SatisfyConditionContext condition, Node currentNode, Map<String, List<Node>> context) {
+        return satisfyHelper(condition, 0, currentNode, context);
+    }
+
+    private static boolean satisfyHelper(XQueryParser.SatisfyConditionContext condition, int curIndex, Node currentNode, Map<String, List<Node>> context) {
+        // Base case: all variable bindings have been processed.
+        if (condition.var().size() == curIndex) {
+            // Evaluate the condition (queryCondition) in the current context.
+            boolean condResult = evaluateCondition(condition, currentNode, context);
+            return condResult;
+        }
+        // Process the current variable binding.
+        String var = condition.var(curIndex).getText();
+        ParseTree xqueryAst = condition.xquery(curIndex);
+        List<Node> xqResults = evaluate(xqueryAst, currentNode, context);
+
+        // For each result, extend the context and recursively process the next variable.
+        for (Node n : xqResults) {
+            Map<String, List<Node>> newContext = new HashMap<>(context);
+            newContext.put(var, Collections.singletonList(n));
+            boolean res = satisfyHelper(condition, curIndex + 1, currentNode, newContext);
+            if (res) {
+                return true;
+            }
+        }
+
+        // If no variable binding leads to a satisfied condition, return null.
+        return false;
+    }
+
     private static boolean handleEmptyCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
         List<Node> xqResults = evaluate(condition.getChild(2), currentNode, context);
         return xqResults.isEmpty();
