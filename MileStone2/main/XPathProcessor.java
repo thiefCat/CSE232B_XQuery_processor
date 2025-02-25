@@ -54,16 +54,12 @@ public class XPathProcessor {
 
         // [rp1/rp2]_R(n)
         if (ast instanceof XQueryParser.ChildrenRPContext) {
-            List<Node> results = handleChildrenRP(ast, currentNode);
-            List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
-            return uniqueResults;
+            return handleChildrenRP(ast, currentNode);
         }
 
         // [rp1//rp2]_R(n)
         if (ast instanceof XQueryParser.DescendantRPContext) {
-            List<Node> results = handleDescendantRP(ast, currentNode);
-            List<Node> uniqueResults = new ArrayList<>(new LinkedHashSet<>(results));
-            return uniqueResults;
+            return handleDescendantRP(ast, currentNode);
         }
 
         // [∗]_R (n)
@@ -95,11 +91,10 @@ public class XPathProcessor {
         if (ast instanceof XQueryParser.CommaRPContext) {
             List<Node> leftRes = evaluate(ast.getChild(0), currentNode);
             List<Node> rightRes = evaluate(ast.getChild(2), currentNode);
-            Set<Node> uniqueNodes = new LinkedHashSet<>();
-            uniqueNodes.addAll(leftRes);
-            uniqueNodes.addAll(rightRes);
-
-            return new ArrayList<>(uniqueNodes);
+            List<Node> result = new ArrayList<>();
+            result.addAll(leftRes);
+            result.addAll(rightRes);
+            return result;
         }
 
         //   | relativePath  '[' f ']'  # filterRP
@@ -229,7 +224,7 @@ public class XPathProcessor {
         for (Node rp1 : rp1Results) {
             result.addAll(evaluate(ast.getChild(2), rp1));
         }
-        return result;
+        return unique(result);
     }
 
     // rp1//rp2 -> rp1/rp2, rp1/*//rp2
@@ -250,7 +245,7 @@ public class XPathProcessor {
         for (Node n : rp1Results) {
             result.addAll(evaluate(descendantRP, n));
         }
-        return result;
+        return unique(result);
     }
 
     // tagName
@@ -357,5 +352,23 @@ public class XPathProcessor {
         // [[not f]]F (n)
         //  = ¬[[f]]F (n) (21)
         return !evaluateFilter(ast.getChild(1), currentNode);
+    }
+    private static List<Node> unique(List<Node> nodes) {
+        List<Node> uniqueNodes = new ArrayList<>();
+
+        for (Node node : nodes) {
+            boolean isDuplicate = false;
+            for (Node uniqueNode : uniqueNodes) {
+                if (node.isEqualNode(uniqueNode)) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                uniqueNodes.add(node);
+            }
+        }
+
+        return uniqueNodes;
     }
 }
