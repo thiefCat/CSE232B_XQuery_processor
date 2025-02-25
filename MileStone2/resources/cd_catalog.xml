@@ -25,4 +25,8 @@
         <artist>Queen</artist>
         <price>9.40</price>
     </cd>
+    <cd>
+        <title>Empty Artist</title>
+        <price>9.40</price>
+    </cd>
 </catalog>

@@ -275,7 +275,14 @@ public class XQueryProcessor {
         if (condition instanceof XQueryParser.ParenthesizedConditionContext) {
             return handleParenthesizedCondition(condition, currentNode, context);
         }
+        if (condition instanceof XQueryParser.EmptyConditionContext) {
+            return handleEmptyCondition(condition, currentNode, context);
+        }
         return false;
+    }
+    private static boolean handleEmptyCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
+        List<Node> xqResults = evaluate(condition.getChild(2), currentNode, context);
+        return xqResults.isEmpty();
     }
 
     private static boolean handleEqCondition(ParseTree condition, Node currentNode, Map<String, List<Node>> context){
