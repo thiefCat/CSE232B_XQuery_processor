@@ -23,16 +23,26 @@ public class XQueryProcessor {
             tmpDoc = builder.newDocument();
 
             List<Node> resultNodes = evaluate(ast, document, emptyContext);
-
             if (resultNodes == null || resultNodes.isEmpty()) {
                 return tmpDoc;
             }
 
-            Node root = resultNodes.get(0);
-            Node importedRoot = tmpDoc.importNode(root, true);
-            tmpDoc.appendChild(importedRoot);
+            if (resultNodes.size() == 1) {
+                Node root = resultNodes.get(0);
+                Node importedRoot = tmpDoc.importNode(root, true);
+                tmpDoc.appendChild(importedRoot);
+                return tmpDoc;
+            } else {
+                Element rootElement = tmpDoc.createElement("result");
+                tmpDoc.appendChild(rootElement);
+                for (Node node : resultNodes) {
+                    Node importedNode = tmpDoc.importNode(node, true); // deep copy
+                    rootElement.appendChild(importedNode);
+                }
 
-            return tmpDoc;
+                return tmpDoc;
+            }
+
         }
     }
 
