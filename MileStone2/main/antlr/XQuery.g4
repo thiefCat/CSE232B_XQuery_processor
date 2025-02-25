@@ -21,11 +21,11 @@ returnClause : 'return' xquery ;
 queryCondition : xquery EQ xquery                                                  # eqCondition
      | xquery IS xquery                                                            # isCondition
      | 'empty' '(' xquery ')'                                                      # emptyCondition
-     | 'some' var 'in' xquery (',' var 'in' xquery)* 'satisfies' queryCondition    # satisfyCondition
      | '(' queryCondition ')'                                                      # parenthesizedCondition
      | queryCondition 'and' queryCondition                                         # andCondition
      | queryCondition 'or' queryCondition                                          # orCondition
      | 'not' queryCondition                                                        # notCondition
+     | 'some' var 'in' xquery (',' var 'in' xquery)* 'satisfies' queryCondition    # satisfyCondition
      ;
 
 beginTag: '<' tagName '>';
