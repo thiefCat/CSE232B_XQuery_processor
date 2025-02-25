@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class XPathProcessor {
     public static Document compute(Document document, ParseTree ast) throws Exception {
         List<Node> resultNodes = evaluate(ast, document);
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document resultDoc = builder.newDocument();
@@ -21,13 +22,23 @@ public class XPathProcessor {
         Element rootElement = resultDoc.createElement("RESULT");
         resultDoc.appendChild(rootElement);
 
-        // Append all result nodes to the <RESULT> element
-        if (resultNodes.isEmpty()) {
-            rootElement.appendChild(resultDoc.createTextNode(" "));
-        }else {
-            for (Node node : resultNodes) {
-                Node importedNode = resultDoc.importNode(node, true); // Import node into new document
-                rootElement.appendChild(importedNode);
+        // If the resultNodes contains only a document, transform it
+        // to its childNodes.
+        // If resultNodes contains only one Document node, transform it to its child nodes.
+        if (resultNodes.size() == 1 && resultNodes.get(0).getNodeType() == Node.DOCUMENT_NODE) {
+            Document sourceDoc = (Document) resultNodes.get(0);
+            Element sourceRoot = sourceDoc.getDocumentElement();
+            Node importedRoot = resultDoc.importNode(sourceRoot, true);
+            rootElement.appendChild(importedRoot);
+        } else {
+            // Append all result nodes to the <RESULT> element
+            if (resultNodes.isEmpty()) {
+                rootElement.appendChild(resultDoc.createTextNode(" "));
+            } else {
+                for (Node node : resultNodes) {
+                    Node importedNode = resultDoc.importNode(node, true);
+                    rootElement.appendChild(importedNode);
+                }
             }
         }
         return resultDoc;
