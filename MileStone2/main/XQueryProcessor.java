@@ -301,7 +301,7 @@ public class XQueryProcessor {
         // Base case: all variable bindings have been processed.
         if (condition.var().size() == curIndex) {
             // Evaluate the condition (queryCondition) in the current context.
-            boolean condResult = evaluateCondition(condition, currentNode, context);
+            boolean condResult = evaluateCondition(condition.queryCondition(), currentNode, context);
             return condResult;
         }
         // Process the current variable binding.
