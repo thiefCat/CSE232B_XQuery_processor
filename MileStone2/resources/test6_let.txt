@@ -1,6 +1,0 @@
-<result> {
-    let $allTitles := doc("catalog.xml")/catalog/cd/title
-    <mergedCDs>
-      { $allTitles }
-    </mergedCDs>
-} </result>

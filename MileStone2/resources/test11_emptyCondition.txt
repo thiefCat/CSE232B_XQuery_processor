@@ -1,5 +1,0 @@
-<result> {
-  for $c in doc("cd_catalog.xml")/catalog/cd
-  where empty($c/artist)
-  return <cheapCD>{ $c/title }</cheapCD>
-} </result>

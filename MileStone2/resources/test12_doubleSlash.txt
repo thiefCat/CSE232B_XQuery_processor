@@ -1,6 +1,0 @@
-<result> {
-for $t in doc("cd_catalog.xml")//title
-return <filteredCD>
-         { $t }
-       </filteredCD>
-}</result>
